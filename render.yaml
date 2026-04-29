@@ -1,0 +1,63 @@
+services:
+  - type: web
+    name: gcsw-student-server
+    env: python
+    plan: free
+    runtime: python-3.11
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend/student_server.py
+    envVars:
+      - key: SECRET_KEY
+        scope: run
+        value: ${SECRET_KEY}
+      - key: FIREBASE_CREDENTIALS_JSON
+        scope: run
+        value: ${FIREBASE_CREDENTIALS_JSON}
+      - key: PORT
+        scope: run
+        value: 8000
+      - key: FLASK_ENV
+        scope: run
+        value: production
+
+  - type: web
+    name: gcsw-admin-server
+    env: python
+    plan: free
+    runtime: python-3.11
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend/admin_server.py
+    envVars:
+      - key: SECRET_KEY
+        scope: run
+        value: ${SECRET_KEY}
+      - key: FIREBASE_CREDENTIALS_JSON
+        scope: run
+        value: ${FIREBASE_CREDENTIALS_JSON}
+      - key: PORT
+        scope: run
+        value: 8001
+      - key: FLASK_ENV
+        scope: run
+        value: production
+
+  - type: web
+    name: gcsw-consultant-server
+    env: python
+    plan: free
+    runtime: python-3.11
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend/consultant_server.py
+    envVars:
+      - key: SECRET_KEY
+        scope: run
+        value: ${SECRET_KEY}
+      - key: FIREBASE_CREDENTIALS_JSON
+        scope: run
+        value: ${FIREBASE_CREDENTIALS_JSON}
+      - key: PORT
+        scope: run
+        value: 8002
+      - key: FLASK_ENV
+        scope: run
+        value: production

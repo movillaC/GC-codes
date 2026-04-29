@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Data Backup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #fff5f5; --surface: #ffffff; --border: #fecaca;
+    --text-primary: #1a1d23; --text-secondary: #5a6075;
+    --red: #dc2626; --red-hover: #b91c1c; --red-light: #fee2e2;
+    --green: #16a34a; --green-light: #dcfce7;
+    --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07);
+    --sidebar-width: 240px;
+  }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: var(--sidebar-width); background: var(--red); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; }
+  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 16px 24px 6px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 12px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+
+  /* MAIN */
+  .main { margin-left: var(--sidebar-width); flex: 1; padding: 32px; max-width: 900px; }
+  .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 28px; }
+
+  /* STATUS BAR */
+  .status-bar { background: var(--green-light); border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 14px 20px; display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .status-text { font-size: 14px; color: var(--green); font-weight: 500; }
+
+  /* CARDS GRID */
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .action-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+  .action-card-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+  .action-card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
+  .action-card-btn { width: 100%; padding: 11px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .action-card-btn.primary { background: var(--red); color: #fff; }
+  .action-card-btn.primary:hover { background: var(--red-hover); }
+  .action-card-btn.secondary { background: var(--red-light); color: var(--red); }
+  .action-card-btn.secondary:hover { background: #fca5a5; }
+  .action-card-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* SCOPE CHECKBOXES */
+  .scope-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .scope-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-primary); cursor: pointer; }
+  .scope-item input { accent-color: var(--red); width: 16px; height: 16px; cursor: pointer; }
+
+  /* PROGRESS */
+  .progress-wrap { margin-top: 16px; display: none; }
+  .progress-wrap.visible { display: block; }
+  .progress-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  .progress-bar { height: 8px; background: #e2e5ea; border-radius: 6px; overflow: hidden; }
+  .progress-fill { height: 8px; background: var(--red); border-radius: 6px; width: 0%; transition: width 0.4s; }
+
+  /* HISTORY TABLE */
+  .section-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 28px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--red-light); color: var(--red); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 20px; text-align: left; }
+  td { padding: 13px 20px; font-size: 13px; color: var(--text-primary); border-top: 1px solid var(--border); }
+  tr:hover td { background: #fff8f8; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge.success { background: var(--green-light); color: var(--green); }
+  .badge.failed { background: var(--red-light); color: var(--red); }
+  .badge.running { background: #fef3c7; color: #92400e; }
+  .dl-btn { background: #f3f4f6; color: var(--text-primary); border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .dl-btn:hover { background: #e5e7eb; }
+
+  /* RESTORE SECTION */
+  .restore-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 24px; }
+  .restore-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+  .restore-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+  .restore-upload { border: 2px dashed var(--border); border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+  .restore-upload:hover { border-color: var(--red); }
+  .restore-upload-label { font-size: 14px; color: var(--text-secondary); }
+  .restore-upload-label strong { color: var(--red); }
+  .restore-btn { margin-top: 14px; background: var(--red); color: #fff; border: none; border-radius: var(--radius); padding: 11px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .restore-btn:hover { background: var(--red-hover); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>GCSW</span><small>Admin Portal</small></div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="/users">User Management</a>
+    <a class="nav-item" href="/audit-logs">Audit Logs</a>
+    <a class="nav-item" href="/system-config">System Config</a>
+    <a class="nav-item active" href="/backup">Data Backup</a>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="page-title">Data Backup</div>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span class="status-status">Last backup: <span id="lastBackup">—</span> &nbsp;|&nbsp; All systems operational</span>
+    </div>
+
+    <!-- ACTION CARDS -->
+    <div class="action-grid">
+      <div class="action-card">
+        <div class="action-card-title">Full Backup</div>
+        <div class="action-card-desc">Export all users, health tracker data, audit logs, and system config as a single JSON archive.</div>
+        <div class="scope-list">
+          <label class="scope-item"><input type="checkbox" id="includeUsers" checked /> User accounts & roles</label>
+          <label class="scope-item"><input type="checkbox" id="includeHealth" checked /> Health tracker data</label>
+          <label class="scope-item"><input type="checkbox" id="includeLogs" checked /> Audit logs</label>
+          <label class="scope-item"><input type="checkbox" id="includeConfig" checked /> System config</label>
+        </div>
+        <button class="action-card-btn primary" id="backupBtn" onclick="startBackup()">&#8595; Run Backup Now</button>
+        <div class="progress-wrap" id="backupProgress">
+          <div class="progress-label" id="backupLabel">Preparing backup...</div>
+          <div class="progress-bar"><div class="progress-fill" id="backupFill"></div></div>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-card-title">Scheduled Backups</div>
+        <div class="action-card-desc">Configure automatic backups to run on a schedule. Backups are stored securely on the server.</div>
+        <div class="scope-list">
+          <label class="scope-item"><input type="radio" name="schedule" value="daily" checked /> Daily (midnight)</label>
+          <label class="scope-item"><input type="radio" name="schedule" value="weekly" /> Weekly (Sunday)</label>
+          <label class="scope-item"><input type="radio" name="schedule" value="monthly" /> Monthly (1st)</label>
+          <label class="scope-item"><input type="radio" name="schedule" value="off" /> Off</label>
+        </div>
+        <button class="action-card-btn secondary" onclick="saveSchedule()">Save Schedule</button>
+      </div>
+    </div>
+
+    <!-- BACKUP HISTORY -->
+    <div class="section-title">Backup History</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Status</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable">
+          <tr><td colspan="5" style="text-align:center;color:#bbb;padding:40px">Loading backup history...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RESTORE -->
+    <div class="restore-card">
+      <div class="restore-title">Restore from Backup</div>
+      <div class="restore-desc">Upload a previously downloaded backup file (.json) to restore the system. This will overwrite existing data.</div>
+      <div class="restore-upload" onclick="document.getElementById('restoreFile').click()">
+        <div class="restore-upload-label">
+          <strong>Click to choose a file</strong> or drag and drop<br/>
+          <span id="fileLabel" style="font-size:12px;margin-top:6px;display:block">Accepts .json backup files only</span>
+        </div>
+        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="fileChosen()" />
+      </div>
+      <button class="restore-btn" onclick="startRestore()">Restore Now</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    const tokenResult = await user.getIdTokenResult();
+    if (tokenResult.claims.role !== 'admin') { window.location.replace('/dashboard'); return; }
+    loadHistory(await user.getIdToken());
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.replace('/login');
+  });
+
+  async function loadHistory(token) {
+    try {
+      const res = await fetch('/api/backup/list', { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      if (data.success) {
+        renderHistory(data.backups);
+        if (data.backups.length > 0) document.getElementById('lastBackup').textContent = data.backups[0].datetime;
+      }
+    } catch {
+      document.getElementById('historyTable').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#bbb;padding:32px">No backup history found.</td></tr>';
+    }
+  }
+
+  function renderHistory(backups) {
+    if (!backups || backups.length === 0) {
+      document.getElementById('historyTable').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#bbb;padding:32px">No backups yet.</td></tr>';
+      return;
+    }
+    document.getElementById('historyTable').innerHTML = backups.map(b => `
+      <tr>
+        <td>${b.datetime}</td>
+        <td>${b.type || 'Full'}</td>
+        <td>${b.size || '—'}</td>
+        <td><span class="badge ${b.status}">${b.status}</span></td>
+        <td>${b.status === 'success' ? `<button class="dl-btn" onclick="downloadBackup('${b.id}')">&#8595; Download</button>` : '—'}</td>
+      </tr>`).join('');
+  }
+
+  window.startBackup = async () => {
+    const btn = document.getElementById('backupBtn');
+    const progress = document.getElementById('backupProgress');
+    const fill = document.getElementById('backupFill');
+    const label = document.getElementById('backupLabel');
+    btn.disabled = true;
+    progress.classList.add('visible');
+
+    const scope = {
+      users: document.getElementById('includeUsers').checked,
+      health: document.getElementById('includeHealth').checked,
+      logs: document.getElementById('includeLogs').checked,
+      config: document.getElementById('includeConfig').checked,
+    };
+
+    const steps = ['Collecting user data...', 'Exporting health records...', 'Packaging audit logs...', 'Finalizing archive...'];
+    for (let i = 0; i < steps.length; i++) {
+      label.textContent = steps[i];
+      fill.style.width = ((i + 1) / steps.length * 100) + '%';
+      await new Promise(r => setTimeout(r, 700));
+    }
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch('/api/backup/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(scope)
+      });
+      const data = await res.json();
+      if (data.success) {
+        label.textContent = '✓ Backup complete!';
+        // Auto-download
+        const blob = new Blob([JSON.stringify(data.backup)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `gcsw-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        loadHistory(token);
+      } else {
+        label.textContent = 'Backup failed.';
+      }
+    } catch {
+      label.textContent = 'Error during backup.';
+    }
+    btn.disabled = false;
+  };
+
+  window.saveSchedule = async () => {
+    const schedule = document.querySelector('input[name="schedule"]:checked')?.value;
+    const token = await auth.currentUser.getIdToken();
+    await fetch('/api/backup/schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ schedule })
+    });
+    alert(`Backup schedule set to: ${schedule}`);
+  };
+
+  window.downloadBackup = async (id) => {
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`/api/admin/backup/${id}`, { headers: { 'Authorization': 'Bearer ' + token } });
+    const data = await res.json();
+    if (data.success) {
+      const blob = new Blob([JSON.stringify(data.backup)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `gcsw-backup-${id}.json`;
+      a.click();
+    }
+  };
+
+  window.fileChosen = () => {
+    const file = document.getElementById('restoreFile').files[0];
+    if (file) document.getElementById('fileLabel').textContent = `Selected: ${file.name}`;
+  };
+
+  window.startRestore = async () => {
+    const file = document.getElementById('restoreFile').files[0];
+    if (!file) { alert('Please select a backup file first.'); return; }
+    if (!confirm('⚠ This will overwrite existing data. Are you absolutely sure?')) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const backup = JSON.parse(e.target.result);
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch('/api/backup/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ backup })
+        });
+        const data = await res.json();
+        alert(data.success ? '✓ Restore completed successfully.' : 'Restore failed: ' + data.message);
+      } catch { alert('Invalid backup file.'); }
+    };
+    reader.readAsText(file);
+  };
+</script>
+</body>
+</html>

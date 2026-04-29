@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counselor Sign Up - GCSW</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface: #ffffff;
+      --border: #e2e5ea;
+      --text-primary: #1a1d23;
+      --text-secondary: #5a6075;
+      --purple: #9c27b0;
+      --purple-hover: #8e24aa;
+      --radius: 10px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      color: var(--text-primary);
+    }
+
+    .wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+    .left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 48px;
+      gap: 24px;
+      background: #fff;
+    }
+
+    .logo-text p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 360px;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .role-badge {
+      display: inline-block;
+      background: #f3e5f5;
+      color: #6a1b9a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .right {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      background: #f7f9fb;
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .form-box h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .form-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .input-group input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--purple);
+    }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    .toggle-pass {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    .signup-btn {
+      width: 100%;
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 6px;
+    }
+
+    .signup-btn:hover:not(:disabled) {
+      background: var(--purple-hover);
+    }
+
+    .signup-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 13px;
+      min-height: 18px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      color: var(--purple);
+    }
+
+    .message.show { opacity: 1; }
+    .message.error { color: #e53935; }
+
+    .link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .link span {
+      color: var(--purple);
+      font-weight: 500;
+    }
+
+    .link:hover span { text-decoration: underline; }
+
+    .screen { display: none; width: 100%; }
+    .screen.active { display: block; }
+
+    .success-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+    }
+
+    .success-icon svg { width: 100%; height: 100%; }
+
+    @media (max-width: 1024px) {
+      .wrapper { flex-direction: column; }
+      .left { padding: 32px; }
+      .right { border-left: none; border-top: 1px solid var(--border); padding: 32px; }
+    }
+
+    @media (max-width: 640px) {
+      .left { padding: 24px; }
+      .right { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="left">
+    <svg width="160" height="160" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="90" fill="none" stroke="#28a745" stroke-width="10"/>
+      <circle cx="100" cy="100" r="77" fill="none" stroke="#f5d600" stroke-width="8"/>
+      <text x="100" y="115" font-size="40" text-anchor="middle" fill="#1a1d23" font-family="DM Sans, sans-serif" font-weight="600">GCSW</text>
+    </svg>
+    <div class="logo-text">
+      <p>GCSW Counselor Portal. Create a counselor account to access student monitoring tools, counseling session management, case notes, and risk alert features.</p>
+    </div>
+  </div>
+
+  <div class="right">
+    <!-- SCREEN 1: SIGN UP -->
+    <div class="screen active" id="screenSignup">
+      <div class="form-box">
+        <div class="role-badge">Counselor Account</div>
+        <h2>Create Counselor Account</h2>
+        <p class="form-subtitle">Register for counselor access</p>
+
+        <div class="input-group">
+          <label for="suName">Full Name</label>
+          <input type="text" id="suName" placeholder="Enter your full name" autocomplete="name">
+          <div class="message error" id="suNameErr"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="suEmail">Email</label>
+          <input type="email" id="suEmail" placeholder="Enter your email" autocomplete="email">
+          <div class="message error" id="suEmailErr"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="suPw">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="suPw" placeholder="Enter password (min. 8 characters)" autocomplete="new-password">
+            <span class="toggle-pass" id="pwToggle">Show</span>
+          </div>
+          <div class="message error" id="suPwErr"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="suConfirm">Confirm Password</label>
+          <div class="password-wrap">
+            <input type="password" id="suConfirm" placeholder="Repeat your password" autocomplete="new-password">
+            <span class="toggle-pass" id="pwToggle2">Show</span>
+          </div>
+          <div class="message error" id="confirmErr"></div>
+        </div>
+
+        <button class="signup-btn" id="signupBtn" disabled>Create Account</button>
+        <div class="message error" id="signupErr"></div>
+        <a class="link">Already have an account? <span onclick="window.location.replace('/login')">Sign in</span></a>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: SUCCESS -->
+    <div class="screen" id="screenSuccess">
+      <div class="form-box" style="text-align: center;">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 13l4 4L19 7" stroke="#9c27b0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 id="successTitle">Account Created!</h2>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 20px 0; line-height: 1.6;" id="successSub">Your counselor account has been created. Redirecting to dashboard...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth, db } from '/static/firebase_config.js';
+  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function isValidEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  }
+
+  function showMsg(elementId, text, isError = false) {
+    const msg = document.getElementById(elementId);
+    msg.textContent = text;
+    msg.className = 'message' + (text ? ' show' : '');
+    if (isError) msg.classList.add('error');
+    else msg.classList.remove('error');
+  }
+
+  function togglePass(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    btn.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? 'Hide' : 'Show';
+    });
+  }
+
+  const suName    = document.getElementById('suName');
+  const suEmail   = document.getElementById('suEmail');
+  const suPw      = document.getElementById('suPw');
+  const suConfirm = document.getElementById('suConfirm');
+  const signupBtn = document.getElementById('signupBtn');
+
+  [suName, suEmail, suPw, suConfirm].forEach(el => el.addEventListener('input', validateSignup));
+
+  function validateSignup() {
+    signupBtn.disabled = !(
+      suName.value.trim().length >= 2 &&
+      isValidEmail(suEmail.value.trim()) &&
+      suPw.value.length >= 8 &&
+      suConfirm.value === suPw.value
+    );
+  }
+
+  togglePass('suPw', 'pwToggle');
+  togglePass('suConfirm', 'pwToggle2');
+
+  signupBtn.addEventListener('click', async () => {
+    let ok = true;
+
+    if (suName.value.trim().length < 2) {
+      showMsg('suNameErr', 'Please enter your full name.', true); ok = false;
+    } else { showMsg('suNameErr', ''); }
+
+    if (!isValidEmail(suEmail.value.trim())) {
+      showMsg('suEmailErr', 'Please enter a valid email address.', true); ok = false;
+    } else { showMsg('suEmailErr', ''); }
+
+    if (suPw.value.length < 8) {
+      showMsg('suPwErr', 'Password must be at least 8 characters.', true); ok = false;
+    } else { showMsg('suPwErr', ''); }
+
+    if (suConfirm.value !== suPw.value) {
+      showMsg('confirmErr', 'Passwords do not match.', true); ok = false;
+    } else { showMsg('confirmErr', ''); }
+
+    if (!ok) return;
+
+    signupBtn.textContent = 'Creating...';
+    signupBtn.disabled = true;
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, suEmail.value.trim(), suPw.value);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: suName.value.trim(),
+        role: 'counselor',
+        disabled: false,
+        createdAt: new Date(),
+        updated_at: new Date()
+      });
+
+      goTo('screenSuccess');
+      setTimeout(() => {
+        window.location.replace('/dashboard');
+      }, 1500);
+
+    } catch (error) {
+      signupBtn.textContent = 'Create Account';
+      signupBtn.disabled = false;
+      showMsg('signupErr', error.message, true);
+    }
+  });
+</script>
+
+</body>
+</html>

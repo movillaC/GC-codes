@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Active Sessions — Counselor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg: #f5f0ff; --surface: #ffffff; --border: #e2d9f3; --text-primary: #1a1d23; --text-secondary: #5a6075; --purple: #7c3aed; --purple-hover: #6d28d9; --purple-light: #ede9fe; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 240px; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: var(--sidebar-width); background: var(--purple); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
+  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 780px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.12; pointer-events: none; z-index: 0; }
+  .watermark svg { width: 220px; height: 220px; }
+  .card-content { position: relative; z-index: 1; }
+  .purple-btn { background: var(--purple); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-block; }
+  .purple-btn:hover { background: var(--purple-hover); }
+  .outline-btn { background: transparent; color: var(--purple); border: 1.5px solid var(--purple); border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+  .outline-btn:hover { background: var(--purple-light); }
+  .danger-btn { background: #dc2626; color: #fff; border: none; border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+  .danger-btn:hover { background: #b91c1c; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge.risk { background: #fee2e2; color: #dc2626; }
+  .badge.ok { background: #dcfce7; color: #16a34a; }
+  .badge.moderate { background: #fef9c3; color: #ca8a04; }
+  .badge.pending { background: #fef9c3; color: #ca8a04; }
+  .badge.approved { background: #dcfce7; color: #16a34a; }
+  .badge.declined { background: #fee2e2; color: #dc2626; }
+  .badge.active-session { background: var(--purple-light); color: var(--purple); }
+  .main-full { margin-left: var(--sidebar-width); flex: 1; padding: 32px; display: flex; flex-direction: column; height: 100vh; }
+  .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+  .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+  .sessions-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; flex: 1; min-height: 0; }
+  .sessions-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow-y: auto; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+  .sessions-header { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .session-item { padding: 14px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  .session-item:hover { background: var(--purple-light); }
+  .session-item.active { background: var(--purple-light); border-left: 3px solid var(--purple); }
+  .session-item:last-child { border-bottom: none; }
+  .sess-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+  .sess-preview { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+  .sess-time { font-size: 11px; color: #bbb; }
+  .chat-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; box-shadow: var(--shadow); overflow: hidden; }
+  .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .chat-header-info .name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .chat-header-info .sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .chat-header-actions { display: flex; gap: 8px; align-items: center; }
+  .chat-window { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #fafafa; }
+  .msg-wrap { display: flex; flex-direction: column; }
+  .msg-wrap.counselor-wrap { align-items: flex-end; }
+  .msg-wrap.student-wrap { align-items: flex-start; }
+  .sender-label { font-size: 11px; color: #bbb; margin-bottom: 3px; }
+  .bubble { max-width: 65%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5; }
+  .student-wrap .bubble { background: #e2e5ea; color: var(--text-primary); border-bottom-left-radius: 4px; }
+  .counselor-wrap .bubble { background: var(--purple); color: #fff; border-bottom-right-radius: 4px; }
+  .msg-time { font-size: 11px; color: #bbb; margin-top: 3px; }
+  .chat-input-area { padding: 14px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .chat-input-row { display: flex; gap: 10px; }
+  .chat-input { flex: 1; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-family: 'DM Sans',sans-serif; font-size: 14px; color: var(--text-primary); outline: none; transition: border-color 0.15s; }
+  .chat-input:focus { border-color: var(--purple); }
+  .chat-input::placeholder { color: #bbb; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>GCSW</span>
+      <small>Counselor Portal</small>
+    </div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="/students">Student Monitoring</a>
+    <a class="nav-item" href="/requests">Counseling Requests</a>
+    <a class="nav-item" href="/sessions">Active Sessions</a>
+    <a class="nav-item" href="/case-notes">Case Notes</a>
+    <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+  <div class="main-full">
+    <div class="page-title">Active Sessions</div>
+    <div class="page-subtitle">Converse with students in approved counseling sessions</div>
+    <div class="sessions-layout">
+      <div class="sessions-list">
+        <div class="sessions-header">Sessions <span class="badge active-session">2 active</span></div>
+        <div class="session-item active" onclick="openSession(this,'Maria Santos','maria@gordoncollege.edu.ph','Apr 22, 2026')">
+          <div class="sess-name">Maria Santos</div>
+          <div class="sess-preview">I need help managing my stress...</div>
+          <div class="sess-time">Apr 22, 2026</div>
+        </div>
+        <div class="session-item" onclick="openSession(this,'Ana Gonzales','ana@gordoncollege.edu.ph','Apr 21, 2026')">
+          <div class="sess-name">Ana Gonzales</div>
+          <div class="sess-preview">Thank you for approving my request...</div>
+          <div class="sess-time">Apr 21, 2026</div>
+        </div>
+        <div style="padding:16px;text-align:center;font-size:12px;color:#bbb;">— More sessions from Firebase —</div>
+      </div>
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <div class="name" id="chatName">Maria Santos</div>
+            <div class="sub" id="chatSub">maria@gordoncollege.edu.ph · Session started Apr 22, 2026</div>
+          </div>
+          <div class="chat-header-actions">
+            <span class="badge approved">Active</span>
+            <button class="outline-btn" onclick="viewCaseNotes()">Case Notes</button>
+            <button class="danger-btn" onclick="closeSession()">Close Session</button>
+          </div>
+        </div>
+        <div class="chat-window" id="chatWindow">
+          <div class="msg-wrap student-wrap"><div class="sender-label">Maria Santos</div><div class="bubble">Hello, I need help managing my academic stress. Can we talk?</div><div class="msg-time">Apr 22, 9:00 AM</div></div>
+          <div class="msg-wrap counselor-wrap"><div class="sender-label">You</div><div class="bubble">Hello Maria! Of course. I'm here to help. Can you tell me more about what's been stressing you lately?</div><div class="msg-time">Apr 22, 9:05 AM</div></div>
+          <div class="msg-wrap student-wrap"><div class="sender-label">Maria Santos</div><div class="bubble">It's mostly the exams and deadlines. I can't sleep properly and I feel overwhelmed all the time.</div><div class="msg-time">Apr 22, 9:07 AM</div></div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-input-row">
+            <input class="chat-input" id="replyInput" type="text" placeholder="Type your message..." />
+            <button class="purple-btn" onclick="sendReply()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+  window.openSession = function(el,name,email,date) { document.querySelectorAll('.session-item').forEach(s=>s.classList.remove('active')); el.classList.add('active'); document.getElementById('chatName').textContent=name; document.getElementById('chatSub').textContent=email+' · Session started '+date; document.getElementById('chatWindow').innerHTML='<div style="color:#bbb;font-size:14px;text-align:center;padding:40px;">— Messages will load from Firebase —</div>'; };
+  window.sendReply = function() { const input=document.getElementById('replyInput'); const text=input.value.trim(); if(!text)return; const win=document.getElementById('chatWindow'); const now=new Date(); const time=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); const wrap=document.createElement('div'); wrap.className='msg-wrap counselor-wrap'; wrap.innerHTML='<div class="sender-label">You</div><div class="bubble">'+text+'</div><div class="msg-time">'+time+'</div>'; win.appendChild(wrap); win.scrollTop=win.scrollHeight; input.value=''; };
+  document.getElementById('replyInput').addEventListener('keydown',e=>{ if(e.key==='Enter') window.sendReply(); });
+  window.closeSession = function() { if(confirm('Close this counseling session?')) alert('Session closed.'); };
+  window.viewCaseNotes = function() { window.location.href='/case-notes'; };
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+  });
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+      const { auth } = await import('/static/firebase_config.js');
+      const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js");
+      await signOut(auth);
+    } catch(e) {}
+    window.location.replace('/login');
+  });
+</script>
+</body>
+</html>

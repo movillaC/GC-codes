@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Sign Up - GCSW</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface: #ffffff;
+      --border: #e2e5ea;
+      --text-primary: #1a1d23;
+      --text-secondary: #5a6075;
+      --green: #2db84b;
+      --green-hover: #25a342;
+      --blue-bar: #2979ff;
+      --radius: 10px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      color: var(--text-primary);
+    }
+
+    .wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+    .left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 48px;
+      gap: 24px;
+      background: #fff;
+    }
+
+    .logo-text p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 360px;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .role-badge { 
+      display: inline-block; 
+      background: #e8f5e9; 
+      color: #2e7d32; 
+      padding: 6px 14px; 
+      border-radius: 20px; 
+      font-size: 12px; 
+      font-weight: 600; 
+    }
+
+    .right {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      background: #f7f9fb;
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .form-box h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .form-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: var(--green);
+    }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    .toggle-pass {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    .signup-btn {
+      width: 100%;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 6px;
+    }
+
+    .signup-btn:hover:not(:disabled) {
+      background: var(--green-hover);
+    }
+
+    .signup-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 13px;
+      min-height: 18px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      color: var(--green);
+    }
+
+    .message.show {
+      opacity: 1;
+    }
+
+    .message.error {
+      color: #e53935;
+    }
+
+    .link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .link span {
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    .link:hover span {
+      text-decoration: underline;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .prog-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-bottom: 12px;
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .role-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .role-card {
+      position: relative;
+    }
+
+    .role-card input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .role-card label {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      user-select: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .role-card label:hover {
+      border-color: var(--green);
+      color: var(--text-primary);
+    }
+
+    .role-card input:checked + label {
+      background: #e8f5e9;
+      border-color: var(--green);
+      color: var(--text-primary);
+    }
+
+    .notice {
+      background: #f7f9fb;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .notice a {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    .notice a:hover {
+      text-decoration: underline;
+    }
+
+    .skip-link {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+
+    .skip-link button {
+      background: none;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--green);
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    .success-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+    }
+
+    .success-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    @media (max-width: 1024px) {
+      .wrapper {
+        flex-direction: column;
+      }
+
+      .left {
+        padding: 32px;
+      }
+
+      .right {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding: 32px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .left {
+        padding: 24px;
+      }
+
+      .right {
+        padding: 24px;
+      }
+    }
+
+    footer {
+      background: var(--blue-bar);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    footer a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.9;
+      transition: opacity 0.15s;
+    }
+
+    footer a:hover {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="left">
+    <svg width="160" height="160" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="90" fill="none" stroke="#28a745" stroke-width="10"/>
+      <circle cx="100" cy="100" r="77" fill="none" stroke="#f5d600" stroke-width="8"/>
+      <text x="100" y="115" font-size="40" text-anchor="middle" fill="#1a1d23" font-family="DM Sans, sans-serif" font-weight="600">GCSW</text>
+    </svg>
+    <div class="logo-text">
+      <p>Join thousands of students tracking their wellness journey on GCSW. Monitor your mood, sleep, hydration, stress levels, and physical activity with our comprehensive dashboard.</p>
+    </div>
+  </div>
+
+  <div class="right">
+    <!-- SCREEN 1: SIGN UP -->
+    <div class="screen active" id="screenSignup">
+      <div class="form-box">
+        <div class="role-badge">Student Account</div>
+        <h2>Create Account</h2>
+        <p class="form-subtitle">Join the student wellness community</p>
+
+        <div class="input-group">
+          <label for="suName">Full name</label>
+          <input type="text" id="suName" placeholder="Enter your full name" autocomplete="name">
+          <div class="message error" id="suNameErr"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="suEmail">Email</label>
+          <input type="email" id="suEmail" placeholder="Enter your email" autocomplete="email">
+          <div class="message error" id="suEmailErr"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="suPw">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="suPw" placeholder="Enter password (min. 8 characters)" autocomplete="new-password">
+            <span class="toggle-pass" id="pwToggle">Show</span>
+          </div>
+          <div class="message error" id="suPwErr"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="suConfirm">Confirm Password</label>
+          <div class="password-wrap">
+            <input type="password" id="suConfirm" placeholder="Repeat your password" autocomplete="new-password">
+            <span class="toggle-pass" id="pwToggle2">Show</span>
+          </div>
+          <div class="message error" id="confirmErr"></div>
+        </div>
+
+        <div class="notice">
+          <p>By signing up you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+        </div>
+
+        <button class="signup-btn" id="signupBtn" disabled>Create Account</button>
+        <a class="link">Already have an account? <span onclick="window.location.href='/login'">Sign in</span></a>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: PROFILE -->
+    <div class="screen" id="screenProfile">
+      <div class="form-box">
+        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:50%"></div></div>
+        <div class="step-label" id="stepLabel">STEP 1 OF 2</div>
+
+        <h2 id="profileTitle">Complete Your Profile</h2>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;" id="profileSub"></p>
+
+        <!-- Profile Step 1: School Info -->
+        <div id="pstep1">
+          <div class="input-group">
+            <label for="school">School / Institution</label>
+            <input type="text" id="school" placeholder="e.g. University of Santo Tomas">
+            <div class="message error" id="schoolErr"></div>
+          </div>
+
+          <div class="input-group">
+            <label>Year Level</label>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+              <div style="position: relative;">
+                <input type="radio" name="year" id="y1" value="1st Year" style="position: absolute; opacity: 0;">
+                <label for="y1" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">1st Year</label>
+              </div>
+              <div style="position: relative;">
+                <input type="radio" name="year" id="y2" value="2nd Year" style="position: absolute; opacity: 0;">
+                <label for="y2" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">2nd Year</label>
+              </div>
+              <div style="position: relative;">
+                <input type="radio" name="year" id="y3" value="3rd Year" style="position: absolute; opacity: 0;">
+                <label for="y3" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">3rd Year</label>
+              </div>
+              <div style="position: relative;">
+                <input type="radio" name="year" id="y4" value="4th Year+" style="position: absolute; opacity: 0;">
+                <label for="y4" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">4th+</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <hr class="divider">
+        <div class="message error" id="profileErr"></div>
+        <button class="signup-btn" id="profileBtn" disabled>Continue</button>
+        <div class="skip-link"><button id="skipBtn">Skip for now</button></div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: SUCCESS -->
+    <div class="screen" id="screenSuccess">
+      <div class="form-box" style="text-align: center;">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 13l4 4L19 7" stroke="#2db84b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 id="successTitle">Welcome to GCSW!</h2>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 20px 0; line-height: 1.6;" id="successSub">Your account is ready. Start tracking your wellness.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth, db } from '/static/firebase_config.js';
+  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  /* ── Screen routing ── */
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  /* ── Utilities ── */
+  function isValidEmail(v) { 
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); 
+  }
+
+  function showMsg(elementId, text, isError = false) {
+    const msg = document.getElementById(elementId);
+    msg.textContent = text;
+    msg.className = 'message' + (text ? ' show' : '');
+    if (isError) msg.classList.add('error');
+    else msg.classList.remove('error');
+  }
+
+  function togglePass(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    btn.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? 'Hide' : 'Show';
+    });
+  }
+
+  /* ══════════════════════════════
+     SIGN UP SCREEN
+  ══════════════════════════════ */
+  const suName = document.getElementById('suName');
+  const suEmail = document.getElementById('suEmail');
+  const suPw = document.getElementById('suPw');
+  const suConfirm = document.getElementById('suConfirm');
+  const signupBtn = document.getElementById('signupBtn');
+
+  suName.addEventListener('input', () => validateSignup());
+  suEmail.addEventListener('input', () => validateSignup());
+  suPw.addEventListener('input', () => validateSignup());
+  suConfirm.addEventListener('input', () => validateSignup());
+
+  function validateSignup() {
+    signupBtn.disabled = !(
+      suName.value.trim().length >= 2 &&
+      isValidEmail(suEmail.value.trim()) &&
+      suPw.value.length >= 8 &&
+      suConfirm.value === suPw.value
+    );
+  }
+
+  togglePass('suPw', 'pwToggle');
+  togglePass('suConfirm', 'pwToggle2');
+
+  signupBtn.addEventListener('click', () => {
+    let ok = true;
+
+    if (suName.value.trim().length < 2) {
+      showMsg('suNameErr', 'Please enter your full name.', true);
+      ok = false;
+    } else {
+      showMsg('suNameErr', '');
+    }
+
+    if (!isValidEmail(suEmail.value.trim())) {
+      showMsg('suEmailErr', 'Please enter a valid email address.', true);
+      ok = false;
+    } else {
+      showMsg('suEmailErr', '');
+    }
+
+    if (suPw.value.length < 8) {
+      showMsg('suPwErr', 'Password must be at least 8 characters.', true);
+      ok = false;
+    } else {
+      showMsg('suPwErr', '');
+    }
+
+    if (suConfirm.value !== suPw.value) {
+      showMsg('confirmErr', 'Passwords do not match.', true);
+      ok = false;
+    } else {
+      showMsg('confirmErr', '');
+    }
+
+    if (!ok) return;
+
+    goTo('screenProfile');
+    showPStep(1);
+  });
+
+  /* ══════════════════════════════
+     PROFILE SCREEN
+  ══════════════════════════════ */
+  let pstep = 1;
+
+  const schoolEl = document.getElementById('school');
+  const profileBtn = document.getElementById('profileBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const progFill = document.getElementById('progFill');
+  const stepLabel = document.getElementById('stepLabel');
+  const profileTitle = document.getElementById('profileTitle');
+  const profileSub = document.getElementById('profileSub');
+
+  function isPStep1Valid() {
+    return (
+      schoolEl.value.trim().length >= 2 &&
+      !!document.querySelector('input[name="year"]:checked')
+    );
+  }
+
+  function updateProgress() {
+    progFill.style.width = '100%';
+    profileTitle.textContent = 'School Information';
+    profileSub.textContent = 'Tell us about your school and academic year.';
+    stepLabel.textContent = 'STEP 1 OF 1';
+    profileBtn.textContent = 'Complete Profile';
+  }
+
+  function validateProfile() {
+    profileBtn.disabled = !isPStep1Valid();
+    updateProgress();
+  }
+
+  function showPStep(n) {
+    document.getElementById('pstep1').style.display = 'block';
+    validateProfile();
+  }
+
+  profileBtn.addEventListener('click', () => {
+    if (!isPStep1Valid()) {
+      if (schoolEl.value.trim().length < 2) {
+        showMsg('schoolErr', 'Please enter your school name.', true);
+      }
+      return;
+    }
+    showMsg('schoolErr', '');
+    submitProfile();
+  });
+
+  skipBtn.addEventListener('click', async () => {
+    skipBtn.disabled = true;
+    skipBtn.textContent = 'Saving...';
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, suEmail.value.trim(), suPw.value);
+      const user = userCredential.user;
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: suName.value.trim(),
+        role: 'student',
+        disabled: false,
+        createdAt: new Date(),
+        updated_at: new Date()
+      });
+    } catch (err) {
+      // If user already created (e.g. re-click), ignore auth/email-already-in-use
+      if (err.code !== 'auth/email-already-in-use') {
+        showMsg('profileErr', err.message, true);
+        skipBtn.disabled = false;
+        skipBtn.textContent = 'Skip for now';
+        return;
+      }
+    }
+    goTo('screenSuccess');
+    setTimeout(() => {
+      window.location.replace('/dashboard');
+    }, 1500);
+  });
+
+  function submitProfile() {
+    profileBtn.textContent = 'Saving...';
+    profileBtn.disabled = true;
+    skipBtn.style.display = 'none';
+
+    createUserWithEmailAndPassword(auth, suEmail.value.trim(), suPw.value)
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        const selectedYear = document.querySelector('input[name="year"]:checked').value;
+
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: user.email,
+          displayName: suName.value.trim(),
+          role: 'student',
+          school: schoolEl.value.trim(),
+          year: selectedYear,
+          disabled: false,
+          createdAt: new Date(),
+          updated_at: new Date()
+        });
+
+        goTo('screenSuccess');
+        setTimeout(() => {
+          window.location.replace('/dashboard');
+        }, 1500);
+      })
+      .catch((error) => {
+        profileBtn.textContent = 'Complete Profile';
+        profileBtn.disabled = false;
+        skipBtn.style.display = 'block';
+        showMsg('profileErr', error.message, true);
+      });
+  }
+
+  schoolEl.addEventListener('input', () => {
+    showMsg('schoolErr', '');
+    validateProfile();
+  });
+
+  document.querySelectorAll('input[name="year"]').forEach(el => {
+    el.addEventListener('change', validateProfile);
+  });
+</script>
+
+</body>
+</html>

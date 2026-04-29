@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GCSW – Wellness Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #28a745; --green-hover: #219a3c; --blue-bar: #2979ff; --radius: 10px; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: #fff; color: var(--text-primary); display: flex; flex-direction: column; }
+  .wrapper { display: flex; flex: 1; height: 100vh; }
+  .left { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48px; gap: 32px; background: #fff; animation: fadeUp 0.7s ease both; }
+  .logo-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+  .logo-text { text-align: center; }
+  .logo-text p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; max-width: 360px; }
+  .right { flex: 1; display: flex; justify-content: center; align-items: center; padding: 48px; background: #f7f9fb; border-left: 1px solid var(--border); animation: fadeUp 0.7s ease 0.15s both; }
+  .cta-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 16px; }
+  .cta-box p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; }
+  .btn { width: 100%; padding: 14px 20px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; text-align: center; text-decoration: none; display: block; }
+  .btn-primary { background: var(--green); color: #fff; border: none; }
+  .btn-primary:hover { background: var(--green-hover); }
+  .btn-outline { background: transparent; color: var(--text-primary); border: 1.5px solid var(--border); }
+  .btn-outline:hover { background: #f0f2f5; }
+  .divider { display: flex; align-items: center; gap: 12px; color: #bbb; font-size: 13px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="left">
+    <div class="logo-wrap">
+      <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#28a745" stroke-width="10"/>
+        <circle cx="100" cy="100" r="77" fill="none" stroke="#f5d600" stroke-width="8"/>
+        <text x="100" y="115" font-size="40" text-anchor="middle" fill="#1a1d23" font-family="DM Sans, sans-serif" font-weight="600">GCSW</text>
+      </svg>
+      <div class="logo-text">
+        <p>GCSW is a web-based wellness monitoring application that enables users to track key health indicators including mood, sleep quality, hydration, stress levels, and physical activity through an intuitive and accessible dashboard.</p>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="cta-box">
+      <p>Join GCSW and take the first step toward building healthier, more consistent daily habits.</p>
+      <a href="/signup" class="btn btn-primary">Create an account</a>
+      <div class="divider">already have an account?</div>
+      <a href="/login" class="btn btn-outline">Log in</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

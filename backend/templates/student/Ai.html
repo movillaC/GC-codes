@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wellness AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #2db84b; --green-hover: #25a342; --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 220px; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
+  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; cursor: pointer; }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
+  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s; user-select: none; }
+  .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .quick-log-arrow { font-size: 11px; transition: transform 0.2s; }
+  .quick-log-arrow.open { transform: rotate(180deg); }
+  .quick-log-items { display: none; flex-direction: column; }
+  .quick-log-items.open { display: flex; }
+  .quick-log-items .nav-item { padding: 9px 24px 9px 36px; font-size: 13px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 700px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.15; pointer-events: none; z-index: 0; }
+  .watermark svg { width: 220px; height: 220px; }
+  .card-content { position: relative; z-index: 1; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .go-back { font-size: 14px; color: var(--text-secondary); text-decoration: none; transition: color 0.15s; cursor: pointer; }
+  .go-back:hover { color: var(--text-primary); }
+  .save-btn { width: 100%; background: var(--green); color: #fff; border: none; border-radius: var(--radius); padding: 14px; font-family: 'DM Sans',sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .save-btn:hover { background: var(--green-hover); }
+  .message { text-align: center; margin-top: 10px; font-size: 14px; min-height: 20px; color: var(--green); opacity: 0; transition: opacity 0.3s; }
+  .message.show { opacity: 1; } .message.error { color: #e53935; }
+  .main{margin-left:var(--sidebar-width);flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 40px 28px;width:100%;max-width:700px;box-shadow:var(--shadow);position:relative;overflow:hidden;display:flex;flex-direction:column;height:560px;}
+  .card-title{font-size:18px;font-weight:600;color:var(--text-primary);}
+  .card-subtitle{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+  .chat-window{flex:1;border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin:14px 0;background:#fafafa;}
+  .msg-row{display:flex;align-items:flex-end;gap:8px;}
+  .msg-row.user{justify-content:flex-end;}.msg-row.bot{justify-content:flex-start;}
+  .bubble{max-width:65%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.5;}
+  .msg-row.bot .bubble{background:#e2e5ea;color:var(--text-primary);border-bottom-left-radius:4px;}
+  .msg-row.user .bubble{background:var(--green);color:#fff;border-bottom-right-radius:4px;}
+  .input-row{display:flex;gap:10px;flex-shrink:0;}
+  .chat-input{flex:1;border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-primary);outline:none;transition:border-color 0.15s;}
+  .chat-input:focus{border-color:var(--green);}.chat-input::placeholder{color:#bbb;}
+  .send-btn{background:var(--green);color:#fff;border:none;border-radius:var(--radius);padding:11px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
+  .send-btn:hover{background:var(--green-hover);}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Student Portal</span></div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
+    <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
+    <a class="nav-item" href="/resource-library">Resource Library</a>
+    <a class="nav-item" href="/counseling">Counseling</a>
+    <div class="nav-section-label">Features</div>
+    <div class="quick-log-toggle" onclick="toggleQuickLog()">
+      Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
+    </div>
+    <div class="quick-log-items" id="quickLogItems">
+      <a class="nav-item" href="/mood-tracker">Log Mood</a>
+      <a class="nav-item" href="/stress-note">Stress Note</a>
+      <a class="nav-item" href="/water-intake">Water Intake</a>
+      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+      <a class="nav-item" href="/ai-chat">AI Chat</a>
+      <a class="nav-item" href="/activity-log">Activity Log</a>
+      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    </div>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="card">
+      <div class="watermark"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/><circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/><text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text></svg></div>
+      <div class="card-content" style="display:flex;flex-direction:column;height:100%;position:relative;z-index:1;">
+        <div class="card-header"><div><div class="card-title">Wellness AI</div><div class="card-subtitle">Your personal wellness assistant</div></div><a class="go-back" href="/dashboard">Go back &gt;</a></div>
+        <div class="chat-window" id="chatWindow"></div>
+        <div class="input-row">
+          <input class="chat-input" id="chatInput" type="text" placeholder="Type a message..."/>
+          <button class="send-btn" id="sendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  auth.onAuthStateChanged(user=>{ if(!user) window.location.href='/login'; });
+  const input=document.getElementById('chatInput'),win=document.getElementById('chatWindow');
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
+  document.getElementById('sendBtn').addEventListener('click',sendMsg);
+  async function sendMsg(){
+    const text=input.value.trim();
+    if(!text)return;
+    appendMsg(text,'user');
+    input.value='';
+    try{
+      const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDrmHfgwxqHICRUbM1jOavseztn8OEjTqc',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:text}]}]})
+      });
+      const data=await response.json();
+      if(response.ok&&data.candidates&&data.candidates[0]){
+        const aiMessage=data.candidates[0].content.parts[0].text;
+        appendMsg(aiMessage,'bot');
+      }else{
+        appendMsg('Sorry, I could not generate a response. Please try again.','bot');
+      }
+    }catch(error){
+      console.error('Error:',error);
+      appendMsg('An error occurred. Please try again later.','bot');
+    }
+  }
+  function appendMsg(text,type){const row=document.createElement('div');row.className='msg-row '+type;const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;row.appendChild(bubble);win.appendChild(row);win.scrollTop=win.scrollHeight;}
+
+  window.toggleQuickLog = function() {
+    document.getElementById('quickLogItems').classList.toggle('open');
+    document.getElementById('quickArrow').classList.toggle('open');
+  };
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+  });
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+      const { auth } = await import('/static/firebase_config.js');
+      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+      await signOut(auth);
+    } catch(e) {}
+    window.location.href = '/login';
+  });
+</script>
+</body>
+</html>

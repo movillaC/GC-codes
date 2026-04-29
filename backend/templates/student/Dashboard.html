@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Health Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea;
+    --text-primary: #1a1d23; --text-secondary: #5a6075;
+    --green: #2db84b; --green-hover: #25a342; --green-active: #1d8c38;
+    --green-dark: #1a7a32; --green-text: #ffffff;
+    --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07);
+    --sidebar-width: 220px;
+  }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--blue-bar);
+    display: flex;
+    flex-direction: column;
+    padding: 32px 0 24px;
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    z-index: 10;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo span {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.04em;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 16px 24px 6px;
+  }
+
+  .quick-log-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+  }
+  .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+  .quick-log-arrow {
+    font-size: 11px;
+    transition: transform 0.2s;
+  }
+  .quick-log-arrow.open { transform: rotate(180deg); }
+
+  .quick-log-items {
+    display: none;
+    flex-direction: column;
+  }
+  .quick-log-items.open { display: flex; }
+
+  .quick-log-items .nav-item {
+    padding: 10px 24px 10px 36px;
+    font-size: 13px;
+  }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 8px;
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 12px 24px;
+    transition: color 0.15s, background 0.15s;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    border-left: 3px solid transparent;
+  }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+
+  /* MAIN CONTENT */
+  .main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .page-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .dashboard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 48px 36px;
+    width: 100%;
+    max-width: 780px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.15; pointer-events: none; z-index: 0; }
+  .watermark svg { width: 220px; height: 220px; }
+  .content-inner { position: relative; z-index: 1; }
+
+  .cards-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .stat-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px 28px; }
+  .stat-card.transparent { background: transparent; border: 1.5px solid var(--border); }
+  .stat-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 26px; font-weight: 600; color: var(--text-primary); }
+
+
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>Student Portal</span>
+    </div>
+
+    <a class="nav-item active" href="/dashboard">Dashboard</a>
+    <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
+    <a class="nav-item" href="/resource-library">Resource Library</a>
+    <a class="nav-item" href="/counseling">Counseling</a>
+
+    <div class="nav-section-label">Features</div>
+    <div class="quick-log-toggle" onclick="toggleQuickLog()">
+      Quick Log <span class="quick-log-arrow" id="quickArrow">▼</span>
+    </div>
+    <div class="quick-log-items" id="quickLogItems">
+      <a class="nav-item" href="/mood-tracker">Log Mood</a>
+      <a class="nav-item" href="/stress-note">Stress Note</a>
+      <a class="nav-item" href="/water-intake">Water Intake</a>
+      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+      <a class="nav-item" href="/ai-chat">AI Chat</a>
+      <a class="nav-item" href="/activity-log">Activity Log</a>
+      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="page-content">
+      <div class="dashboard">
+        <div class="watermark">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/>
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/>
+            <text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text>
+          </svg>
+        </div>
+
+        <div class="content-inner">
+          <div class="cards-grid">
+            <div class="stat-card"><div class="stat-label">Mood</div><div class="stat-value" id="moodVal">--</div></div>
+            <div class="stat-card"><div class="stat-label">Sleep</div><div class="stat-value" id="sleepVal">0 Hrs</div></div>
+            <div class="stat-card transparent"><div class="stat-label">Activity</div><div class="stat-value" id="activityVal">0 mins</div></div>
+            <div class="stat-card"><div class="stat-label">Water</div><div class="stat-value" id="waterVal">0 Liters</div></div>
+            <div class="stat-card"><div class="stat-label">Stress</div><div class="stat-value" id="stressVal">None</div></div>
+            <div class="stat-card transparent"><div class="stat-label">Steps</div><div class="stat-value" id="stepsVal">0</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // Toggle Quick Log
+  window.toggleQuickLog = function() {
+    const items = document.getElementById('quickLogItems');
+    const arrow = document.getElementById('quickArrow');
+    items.classList.toggle('open');
+    arrow.classList.toggle('open');
+  };
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.href = '/login'; return; }
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/summary/today', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const s = data.summary;
+        document.getElementById('moodVal').textContent     = s.mood || '--';
+        document.getElementById('sleepVal').textContent    = s.sleep || '0 hrs';
+        document.getElementById('waterVal').textContent    = s.water_liters + ' Liters';
+        document.getElementById('stressVal').textContent   = s.stress || 'None';
+        document.getElementById('activityVal').textContent = s.activity_mins + ' mins';
+        document.getElementById('stepsVal').textContent    = s.steps.toLocaleString();
+      }
+    } catch (err) { console.error('Failed to load summary', err); }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = '/login';
+  });
+
+  // Highlight active nav item
+  const path = window.location.pathname;
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('href') === path) item.classList.add('active');
+  });
+</script>
+</body>
+</html>

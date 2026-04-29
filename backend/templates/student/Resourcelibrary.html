@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resource Library</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea;
+    --text-primary: #1a1d23; --text-secondary: #5a6075;
+    --green: #2db84b; --green-hover: #25a342;
+    --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07);
+    --sidebar-width: 220px;
+  }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; }
+  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 16px 24px 6px; }
+  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s; user-select: none; }
+  .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .quick-log-arrow { font-size: 11px; transition: transform 0.2s; }
+  .quick-log-arrow.open { transform: rotate(180deg); }
+  .quick-log-items { display: none; flex-direction: column; }
+  .quick-log-items.open { display: flex; }
+  .quick-log-items .nav-item { padding: 10px 24px 10px 36px; font-size: 13px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 12px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+
+  /* MAIN */
+  .main { margin-left: var(--sidebar-width); flex: 1; padding: 32px; }
+  .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+  .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+
+  /* SEARCH */
+  .search-bar {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+    background: var(--surface);
+    margin-bottom: 20px;
+    transition: border-color 0.15s;
+  }
+  .search-bar:focus { border-color: var(--green); }
+  .search-bar::placeholder { color: #bbb; }
+
+  /* CATEGORY FILTERS */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .filter-chip {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-chip:hover { border-color: var(--green); color: var(--green); }
+  .filter-chip.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+  /* ARTICLES GRID */
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .article-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s, transform 0.1s;
+    cursor: pointer;
+  }
+  .article-card:hover { border-color: var(--green); transform: translateY(-2px); }
+
+  .article-category {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: fit-content;
+  }
+  .cat-mental { background: #ede9fe; color: #7c3aed; }
+  .cat-physical { background: #dcfce7; color: #16a34a; }
+  .cat-sleep { background: #dbeafe; color: #1d4ed8; }
+  .cat-nutrition { background: #fef9c3; color: #ca8a04; }
+  .cat-stress { background: #fee2e2; color: #dc2626; }
+
+  .article-title { font-size: 15px; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+  .article-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; flex: 1; }
+  .article-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .article-read-time { font-size: 12px; color: #bbb; }
+  .read-btn {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .read-btn:hover { background: var(--green-hover); }
+
+  .no-results { text-align: center; color: #bbb; font-size: 14px; padding: 48px 0; grid-column: 1/-1; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>Student Portal</span>
+    </div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
+    <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
+    <a class="nav-item active" href="/resource-library">Resource Library</a>
+    <div class="nav-section-label">Features</div>
+    <div class="quick-log-toggle" onclick="toggleQuickLog()">
+      Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
+    </div>
+    <div class="quick-log-items" id="quickLogItems">
+      <a class="nav-item" href="/mood-tracker">Log Mood</a>
+      <a class="nav-item" href="/stress-note">Stress Note</a>
+      <a class="nav-item" href="/water-intake">Water Intake</a>
+      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+      <a class="nav-item" href="/ai-chat">AI Chat</a>
+      <a class="nav-item" href="/activity-log">Activity Log</a>
+      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    </div>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="page-title">Resource Library</div>
+    <div class="page-subtitle">Articles and tips to support your physical and mental well-being.</div>
+
+    <input class="search-bar" type="text" id="searchBar" placeholder="Search articles..." oninput="filterArticles()" />
+
+    <div class="filters">
+      <div class="filter-chip active" onclick="setFilter('all', this)">All</div>
+      <div class="filter-chip" onclick="setFilter('Mental Health', this)">Mental Health</div>
+      <div class="filter-chip" onclick="setFilter('Physical Wellness', this)">Physical Wellness</div>
+      <div class="filter-chip" onclick="setFilter('Sleep', this)">Sleep</div>
+      <div class="filter-chip" onclick="setFilter('Nutrition', this)">Nutrition</div>
+      <div class="filter-chip" onclick="setFilter('Stress Management', this)">Stress Management</div>
+    </div>
+
+    <div class="articles-grid" id="articlesGrid"></div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  auth.onAuthStateChanged(user => {
+    if (!user) { window.location.href = '/login'; return; }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = '/login';
+  });
+
+  window.toggleQuickLog = function() {
+    document.getElementById('quickLogItems').classList.toggle('open');
+    document.getElementById('quickArrow').classList.toggle('open');
+  };
+</script>
+
+<script>
+  const articles = [
+    { id:1, category:'Mental Health', catClass:'cat-mental', title:'Understanding Anxiety: What Every Student Should Know', desc:'Learn how to recognize signs of anxiety, what triggers it, and simple techniques to manage it during busy school days.', readTime:'5 min read', link:'#' },
+    { id:2, category:'Mental Health', catClass:'cat-mental', title:'Building Emotional Resilience as a Student', desc:'Practical strategies for bouncing back from academic stress, failed exams, and social pressures.', readTime:'6 min read', link:'#' },
+    { id:3, category:'Mental Health', catClass:'cat-mental', title:'When to Seek Help: A Guide to Mental Health Support', desc:'Understanding when it\'s time to talk to a counselor and how to take that first step without fear.', readTime:'4 min read', link:'#' },
+    { id:4, category:'Physical Wellness', catClass:'cat-physical', title:'Simple Exercises You Can Do at Your Desk', desc:'Stay active between classes with these quick, low-effort movements that boost energy and focus.', readTime:'4 min read', link:'#' },
+    { id:5, category:'Physical Wellness', catClass:'cat-physical', title:'The Importance of Daily Movement for Students', desc:'Why sitting all day hurts your health and easy ways to get moving even with a packed schedule.', readTime:'5 min read', link:'#' },
+    { id:6, category:'Physical Wellness', catClass:'cat-physical', title:'Staying Hydrated: More Than Just Drinking Water', desc:'How hydration affects your mood, memory, and academic performance — and how to drink enough daily.', readTime:'3 min read', link:'#' },
+    { id:7, category:'Sleep', catClass:'cat-sleep', title:'Why Sleep is Your Secret Academic Weapon', desc:'The science behind sleep and memory consolidation, and how getting enough rest improves your grades.', readTime:'5 min read', link:'#' },
+    { id:8, category:'Sleep', catClass:'cat-sleep', title:'How to Fix Your Sleep Schedule as a Student', desc:'Practical tips for resetting your body clock even if you\'ve been staying up late for weeks.', readTime:'4 min read', link:'#' },
+    { id:9, category:'Sleep', catClass:'cat-sleep', title:'The Effects of Screen Time on Sleep Quality', desc:'How phones and laptops before bed disrupt your sleep cycle and what to do instead.', readTime:'4 min read', link:'#' },
+    { id:10, category:'Nutrition', catClass:'cat-nutrition', title:'Eating Well on a Student Budget', desc:'Affordable, nutritious meal ideas that keep you energized without breaking the bank.', readTime:'6 min read', link:'#' },
+    { id:11, category:'Nutrition', catClass:'cat-nutrition', title:'Brain Foods: What to Eat Before an Exam', desc:'Foods that boost concentration and memory — and what to avoid before a big test.', readTime:'4 min read', link:'#' },
+    { id:12, category:'Nutrition', catClass:'cat-nutrition', title:'Skipping Meals: Why It Hurts More Than It Helps', desc:'The impact of missed meals on energy, focus, and mood — and how to eat consistently even when busy.', readTime:'3 min read', link:'#' },
+    { id:13, category:'Stress Management', catClass:'cat-stress', title:'5 Breathing Techniques to Calm Stress Instantly', desc:'Simple breathing exercises you can do anywhere — in class, before a presentation, or during an exam.', readTime:'3 min read', link:'#' },
+    { id:14, category:'Stress Management', catClass:'cat-stress', title:'Time Management Tips to Reduce Academic Stress', desc:'How planning your week reduces last-minute cramming and the anxiety that comes with it.', readTime:'5 min read', link:'#' },
+    { id:15, category:'Stress Management', catClass:'cat-stress', title:'Journaling for Stress Relief: A Beginner\'s Guide', desc:'How writing down your thoughts helps process emotions and reduce overwhelm during difficult times.', readTime:'4 min read', link:'#' },
+  ];
+
+  let activeFilter = 'all';
+
+  function renderArticles() {
+    const query = document.getElementById('searchBar').value.toLowerCase();
+    const grid = document.getElementById('articlesGrid');
+    const filtered = articles.filter(a => {
+      const matchFilter = activeFilter === 'all' || a.category === activeFilter;
+      const matchSearch = a.title.toLowerCase().includes(query) || a.desc.toLowerCase().includes(query) || a.category.toLowerCase().includes(query);
+      return matchFilter && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="no-results">No articles found. Try a different search or category.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(a => `
+      <div class="article-card">
+        <span class="article-category ${a.catClass}">${a.category}</span>
+        <div class="article-title">${a.title}</div>
+        <div class="article-desc">${a.desc}</div>
+        <div class="article-footer">
+          <span class="article-read-time">${a.readTime}</span>
+          <a class="read-btn" href="${a.link}">Read more</a>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.setFilter = function(filter, el) {
+    activeFilter = filter;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderArticles();
+  };
+
+  window.filterArticles = renderArticles;
+
+  renderArticles();
+</script>
+</body>
+</html>

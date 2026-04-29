@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Saved Successfully</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root { --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #2db84b; --green-hover: #25a342; --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 220px; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; }
+  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; cursor: pointer; }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 16px 24px 6px; }
+  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s; user-select: none; }
+  .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .quick-log-arrow { font-size: 11px; transition: transform 0.2s; }
+  .quick-log-arrow.open { transform: rotate(180deg); }
+  .quick-log-items { display: none; flex-direction: column; }
+  .quick-log-items.open { display: flex; }
+  .quick-log-items .nav-item { padding: 10px 24px 10px 36px; font-size: 13px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .logout-btn { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 12px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+
+  /* MAIN — fixed, single rule */
+  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; min-height: 100vh; }
+
+  /* CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px; width: 100%; max-width: 520px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.15; pointer-events: none; z-index: 0; }
+  .watermark svg { width: 220px; height: 220px; }
+  .card-content { position: relative; z-index: 1; }
+  .card-header { display: flex; justify-content: flex-end; margin-bottom: 40px; }
+  .go-back { font-size: 14px; color: var(--text-secondary); text-decoration: none; transition: color 0.15s; }
+  .go-back:hover { color: var(--text-primary); }
+
+  /* SUCCESS */
+  .success-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .success-title { text-align: center; font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 28px; }
+
+  /* DETAILS */
+  .details-box { border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .detail-row { display: grid; grid-template-columns: 140px 1fr; padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { font-weight: 600; color: var(--text-primary); }
+  .detail-val { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>Student Portal</span>
+    </div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
+    <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
+    <a class="nav-item" href="/resource-library">Resource Library</a>
+    <div class="nav-section-label">Features</div>
+    <div class="quick-log-toggle" onclick="toggleQuickLog()">
+      Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
+    </div>
+    <div class="quick-log-items" id="quickLogItems">
+      <a class="nav-item" href="/mood-tracker">Log Mood</a>
+      <a class="nav-item" href="/stress-note">Stress Note</a>
+      <a class="nav-item" href="/water-intake">Water Intake</a>
+      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+      <a class="nav-item" href="/ai-chat">AI Chat</a>
+      <a class="nav-item" href="/activity-log">Activity Log</a>
+      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    </div>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="card">
+      <div class="watermark">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/>
+          <text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text>
+        </svg>
+      </div>
+      <div class="card-content">
+        <div class="card-header">
+          <a class="go-back" href="/dashboard">Go back &gt;</a>
+        </div>
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="success-title">Saved Successfully</div>
+        <div class="details-box">
+          <div class="detail-row"><span class="detail-key">Entry type:</span><span class="detail-val" id="entryType">—</span></div>
+          <div class="detail-row"><span class="detail-key">Details:</span><span class="detail-val" id="entryDetails">—</span></div>
+          <div class="detail-row"><span class="detail-key">Date &amp; time:</span><span class="detail-val" id="entryDatetime">—</span></div>
+          <div class="detail-row"><span class="detail-key">Status:</span><span class="detail-val">Saved to database</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.toggleQuickLog = function() {
+    const items = document.getElementById('quickLogItems');
+    const arrow = document.getElementById('quickArrow');
+    items.classList.toggle('open');
+    arrow.classList.toggle('open');
+  };
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    const { auth } = await import('/static/firebase_config.js');
+    const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+    await signOut(auth);
+    window.location.href = '/login';
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  document.getElementById('entryType').textContent = params.get('type') || '—';
+  document.getElementById('entryDetails').textContent = params.get('details') || '—';
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const h = now.getHours(), m = now.getMinutes().toString().padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  document.getElementById('entryDatetime').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear() + '  ' + (h % 12 || 12) + ':' + m + ' ' + ampm;
+</script>
+</body>
+</html>

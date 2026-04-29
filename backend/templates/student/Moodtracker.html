@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mood Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #2db84b; --green-hover: #25a342; --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 220px; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
+  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; cursor: pointer; }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
+  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s; user-select: none; }
+  .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .quick-log-arrow { font-size: 11px; transition: transform 0.2s; }
+  .quick-log-arrow.open { transform: rotate(180deg); }
+  .quick-log-items { display: none; flex-direction: column; }
+  .quick-log-items.open { display: flex; }
+  .quick-log-items .nav-item { padding: 9px 24px 9px 36px; font-size: 13px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 700px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.15; pointer-events: none; z-index: 0; }
+  .watermark svg { width: 220px; height: 220px; }
+  .card-content { position: relative; z-index: 1; }
+  .card-header { display: flex; justify-content: flex-end; margin-bottom: 28px; }
+  .go-back { font-size: 14px; color: var(--text-secondary); text-decoration: none; transition: color 0.15s; cursor: pointer; }
+  .go-back:hover { color: var(--text-primary); }
+  .save-btn { width: 100%; background: var(--green); color: #fff; border: none; border-radius: var(--radius); padding: 14px; font-family: 'DM Sans',sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .save-btn:hover { background: var(--green-hover); }
+  .message { text-align: center; margin-top: 10px; font-size: 14px; min-height: 20px; color: var(--green); opacity: 0; transition: opacity 0.3s; }
+  .message.show { opacity: 1; } .message.error { color: #e53935; }
+  .card-title{font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:18px;}
+  .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+  .mood-btn{border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 6px 10px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color 0.15s,background 0.15s,transform 0.1s;}
+  .mood-btn:hover,.mood-btn.selected{border-color:var(--green);background:#f6fef8;}
+  .mood-btn.selected{transform:scale(1.03);}
+  .mood-emoji{font-size:28px;display:block;margin-bottom:5px;}
+  .mood-label{font-size:11px;color:var(--text-secondary);font-weight:500;display:block;}
+  .note-label{font-size:13px;color:var(--text-secondary);font-weight:500;margin-bottom:6px;}
+  .note-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-primary);resize:none;outline:none;height:80px;margin-bottom:14px;transition:border-color 0.15s;}
+  .note-input:focus{border-color:var(--green);}.note-input::placeholder{color:#bbb;}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Student Portal</span></div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
+    <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
+    <a class="nav-item" href="/resource-library">Resource Library</a>
+    <a class="nav-item" href="/counseling">Counseling</a>
+    <div class="nav-section-label">Features</div>
+    <div class="quick-log-toggle" onclick="toggleQuickLog()">
+      Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
+    </div>
+    <div class="quick-log-items" id="quickLogItems">
+      <a class="nav-item" href="/mood-tracker">Log Mood</a>
+      <a class="nav-item" href="/stress-note">Stress Note</a>
+      <a class="nav-item" href="/water-intake">Water Intake</a>
+      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+      <a class="nav-item" href="/ai-chat">AI Chat</a>
+      <a class="nav-item" href="/activity-log">Activity Log</a>
+      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    </div>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="card">
+      <div class="watermark"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/><circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/><text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text></svg></div>
+      <div class="card-content">
+        <div class="card-header"><a class="go-back" href="/dashboard">Go back &gt;</a></div>
+        <div class="card-title">How are you feeling?</div>
+        <div class="mood-grid">
+          <div class="mood-btn" onclick="selectMood(this,'Very sad')"><span class="mood-emoji">😢</span><span class="mood-label">Very sad</span></div>
+          <div class="mood-btn" onclick="selectMood(this,'Sad')"><span class="mood-emoji">😕</span><span class="mood-label">Sad</span></div>
+          <div class="mood-btn" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">😐</span><span class="mood-label">Neutral</span></div>
+          <div class="mood-btn" onclick="selectMood(this,'Happy')"><span class="mood-emoji">🙂</span><span class="mood-label">Happy</span></div>
+          <div class="mood-btn" onclick="selectMood(this,'Very happy')"><span class="mood-emoji">😊</span><span class="mood-label">Very happy</span></div>
+        </div>
+        <div class="note-label">Add a note (optional)</div>
+        <textarea class="note-input" id="noteInput" placeholder="What's on your mind?"></textarea>
+        <button class="save-btn" id="saveBtn">Save mood</button>
+        <div class="message" id="msg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  let selectedMood=null;
+  window.selectMood=function(el,mood){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');selectedMood=mood;};
+  document.getElementById('saveBtn').addEventListener('click',async()=>{
+    const user=auth.currentUser;const msg=document.getElementById('msg');
+    if(!user){msg.className='message show error';msg.textContent='You must be logged in.';return;}
+    if(!selectedMood){msg.className='message show error';msg.textContent='Please select a mood.';return;}
+    try{const token=await user.getIdToken();const res=await fetch('/api/mood',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({mood:selectedMood,note:document.getElementById('noteInput').value})});const data=await res.json();if(data.success)window.location.href='/save-confirmation?type=Mood&details='+encodeURIComponent(selectedMood);}catch(e){msg.className='message show error';msg.textContent='Failed to save.';}
+  });
+
+  window.toggleQuickLog = function() {
+    document.getElementById('quickLogItems').classList.toggle('open');
+    document.getElementById('quickArrow').classList.toggle('open');
+  };
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+  });
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+      const { auth } = await import('/static/firebase_config.js');
+      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+      await signOut(auth);
+    } catch(e) {}
+    window.location.href = '/login';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System Config</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #fff5f5; --surface: #ffffff; --border: #fecaca;
+    --text-primary: #1a1d23; --text-secondary: #5a6075;
+    --red: #dc2626; --red-hover: #b91c1c; --red-light: #fee2e2;
+    --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07);
+    --sidebar-width: 240px;
+  }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: var(--sidebar-width); background: var(--red); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; }
+  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 16px 24px 6px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 12px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+
+  /* MAIN */
+  .main { margin-left: var(--sidebar-width); flex: 1; padding: 32px; max-width: 860px; }
+  .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 28px; }
+
+  /* CONFIG SECTIONS */
+  .config-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; }
+  .section-header { background: var(--red-light); padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--red); text-transform: uppercase; letter-spacing: 0.05em; }
+  .section-body { padding: 0; }
+
+  /* CONFIG ROWS */
+  .config-row { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 24px; padding: 18px 24px; border-bottom: 1px solid var(--border); }
+  .config-row:last-child { border-bottom: none; }
+  .config-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .config-desc { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+  .config-control { display: flex; justify-content: flex-end; align-items: center; }
+  .config-input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s; }
+  .config-input:focus { border-color: var(--red); }
+  .config-select { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; background: var(--surface); }
+
+  /* TOGGLE SWITCH */
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: #d1d5db; border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+  .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+  .toggle input:checked + .toggle-slider { background: var(--red); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+  /* SAVE BAR */
+  .save-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; }
+  .save-status { font-size: 13px; color: var(--text-secondary); }
+  .save-status.saved { color: #16a34a; font-weight: 500; }
+  .save-btn { background: var(--red); color: #fff; border: none; border-radius: var(--radius); padding: 10px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .save-btn:hover { background: var(--red-hover); }
+
+  /* DANGER ZONE */
+  .danger-section { background: var(--surface); border: 2px solid var(--red); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .danger-title { font-size: 14px; font-weight: 600; color: var(--red); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+  .danger-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .danger-row:last-child { border-bottom: none; }
+  .danger-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .danger-desc { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+  .danger-btn { background: var(--red-light); color: var(--red); border: 1.5px solid var(--red); border-radius: 8px; padding: 8px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .danger-btn:hover { background: var(--red); color: #fff; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>GCSW</span><small>Admin Portal</small></div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="/users">User Management</a>
+    <a class="nav-item" href="/audit-logs">Audit Logs</a>
+    <a class="nav-item active" href="/system-config">System Config</a>
+    <a class="nav-item" href="/backup">Data Backup</a>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="page-title">System Config</div>
+
+    <div class="save-bar">
+      <span class="save-status" id="saveStatus">Unsaved changes will be lost on refresh.</span>
+      <button class="save-btn" onclick="saveConfig()">Save Changes</button>
+    </div>
+
+    <!-- GENERAL -->
+    <div class="config-section">
+      <div class="section-header"><span class="section-title">General Settings</span></div>
+      <div class="section-body">
+        <div class="config-row">
+          <div><div class="config-label">App Name</div><div class="config-desc">Displayed in the portal header</div></div>
+          <div class="config-control"><input class="config-input" id="appName" type="text" value="GCSW Student Portal" /></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Support Email</div><div class="config-desc">Shown on the Contacts page</div></div>
+          <div class="config-control"><input class="config-input" id="supportEmail" type="email" placeholder="support@gordoncollege.edu.ph" /></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Maintenance Mode</div><div class="config-desc">Blocks all non-admin access</div></div>
+          <div class="config-control">
+            <label class="toggle"><input type="checkbox" id="maintenanceMode" /><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Allow New Registrations</div><div class="config-desc">Let new users sign up</div></div>
+          <div class="config-control">
+            <label class="toggle"><input type="checkbox" id="allowRegistrations" checked /><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="config-section">
+      <div class="section-header"><span class="section-title">Security Settings</span></div>
+      <div class="section-body">
+        <div class="config-row">
+          <div><div class="config-label">Session Timeout</div><div class="config-desc">Auto-logout after inactivity (minutes)</div></div>
+          <div class="config-control"><input class="config-input" id="sessionTimeout" type="number" value="30" min="5" max="480" style="max-width:120px" /></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Max Login Attempts</div><div class="config-desc">Lock account after N failed attempts</div></div>
+          <div class="config-control"><input class="config-input" id="maxAttempts" type="number" value="5" min="1" max="20" style="max-width:120px" /></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Require 2FA for Admins</div><div class="config-desc">Enforce two-factor authentication</div></div>
+          <div class="config-control">
+            <label class="toggle"><input type="checkbox" id="require2fa" checked /><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Audit Logging</div><div class="config-desc">Record all admin actions</div></div>
+          <div class="config-control">
+            <label class="toggle"><input type="checkbox" id="auditLogging" checked /><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH GOALS -->
+    <div class="config-section">
+      <div class="section-header"><span class="section-title">Health Tracker Defaults</span></div>
+      <div class="section-body">
+        <div class="config-row">
+          <div><div class="config-label">Daily Water Goal (ml)</div><div class="config-desc">Default target for Water Intake</div></div>
+          <div class="config-control"><input class="config-input" id="waterGoal" type="number" value="2000" style="max-width:140px" /></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Daily Step Goal</div><div class="config-desc">Default target for Step Tracker</div></div>
+          <div class="config-control"><input class="config-input" id="stepGoal" type="number" value="10000" style="max-width:140px" /></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Recommended Sleep (hrs)</div><div class="config-desc">Shown in Sleep Tracker</div></div>
+          <div class="config-control"><input class="config-input" id="sleepGoal" type="number" value="8" min="4" max="12" style="max-width:120px" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="config-section">
+      <div class="section-header"><span class="section-title">Notifications</span></div>
+      <div class="section-body">
+        <div class="config-row">
+          <div><div class="config-label">Email Alerts on Critical Events</div><div class="config-desc">Send email to admin on critical audit events</div></div>
+          <div class="config-control">
+            <label class="toggle"><input type="checkbox" id="emailAlerts" checked /><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Alert Email Address</div><div class="config-desc">Where to send admin alerts</div></div>
+          <div class="config-control"><input class="config-input" id="alertEmail" type="email" placeholder="admin@gordoncollege.edu.ph" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div class="danger-section">
+      <div class="danger-title">⚠ Danger Zone</div>
+      <div class="danger-row">
+        <div><div class="danger-label">Clear All Audit Logs</div><div class="danger-desc">Permanently deletes all audit log records</div></div>
+        <button class="danger-btn" onclick="confirmAction('clear-logs', 'Clear ALL audit logs? This cannot be undone.')">Clear Logs</button>
+      </div>
+      <div class="danger-row">
+        <div><div class="danger-label">Reset All User Passwords</div><div class="danger-desc">Sends reset emails to all student accounts</div></div>
+        <button class="danger-btn" onclick="confirmAction('reset-passwords', 'Send password resets to ALL users?')">Reset Passwords</button>
+      </div>
+      <div class="danger-row">
+        <div><div class="danger-label">Wipe All Health Data</div><div class="danger-desc">Deletes all tracker records for all users</div></div>
+        <button class="danger-btn" onclick="confirmAction('wipe-data', 'Wipe ALL health tracker data? This is irreversible.')">Wipe Data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    const tokenResult = await user.getIdTokenResult();
+    if (tokenResult.claims.role !== 'admin') { window.location.replace('/dashboard'); return; }
+    loadConfig(await user.getIdToken());
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.replace('/login');
+  });
+
+  async function loadConfig(token) {
+    try {
+      const res = await fetch('/api/system/config', { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      if (data.success && data.config) {
+        const c = data.config;
+        if (c.appName) document.getElementById('appName').value = c.appName;
+        if (c.supportEmail) document.getElementById('supportEmail').value = c.supportEmail;
+        if (c.maintenanceMode !== undefined) document.getElementById('maintenanceMode').checked = c.maintenanceMode;
+        if (c.allowRegistrations !== undefined) document.getElementById('allowRegistrations').checked = c.allowRegistrations;
+        if (c.sessionTimeout) document.getElementById('sessionTimeout').value = c.sessionTimeout;
+        if (c.maxAttempts) document.getElementById('maxAttempts').value = c.maxAttempts;
+        if (c.require2fa !== undefined) document.getElementById('require2fa').checked = c.require2fa;
+        if (c.auditLogging !== undefined) document.getElementById('auditLogging').checked = c.auditLogging;
+        if (c.waterGoal) document.getElementById('waterGoal').value = c.waterGoal;
+        if (c.stepGoal) document.getElementById('stepGoal').value = c.stepGoal;
+        if (c.sleepGoal) document.getElementById('sleepGoal').value = c.sleepGoal;
+        if (c.emailAlerts !== undefined) document.getElementById('emailAlerts').checked = c.emailAlerts;
+        if (c.alertEmail) document.getElementById('alertEmail').value = c.alertEmail;
+      }
+    } catch {}
+  }
+
+  window.saveConfig = async () => {
+    const token = await auth.currentUser.getIdToken();
+    const config = {
+      appName: document.getElementById('appName').value,
+      supportEmail: document.getElementById('supportEmail').value,
+      maintenanceMode: document.getElementById('maintenanceMode').checked,
+      allowRegistrations: document.getElementById('allowRegistrations').checked,
+      sessionTimeout: parseInt(document.getElementById('sessionTimeout').value),
+      maxAttempts: parseInt(document.getElementById('maxAttempts').value),
+      require2fa: document.getElementById('require2fa').checked,
+      auditLogging: document.getElementById('auditLogging').checked,
+      waterGoal: parseInt(document.getElementById('waterGoal').value),
+      stepGoal: parseInt(document.getElementById('stepGoal').value),
+      sleepGoal: parseInt(document.getElementById('sleepGoal').value),
+      emailAlerts: document.getElementById('emailAlerts').checked,
+      alertEmail: document.getElementById('alertEmail').value,
+    };
+    try {
+      const res = await fetch('/api/system/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(config)
+      });
+      const data = await res.json();
+      const status = document.getElementById('saveStatus');
+      if (data.success) {
+        status.textContent = '✓ Changes saved successfully.';
+        status.className = 'save-status saved';
+        setTimeout(() => { status.textContent = 'Unsaved changes will be lost on refresh.'; status.className = 'save-status'; }, 3000);
+      } else {
+        status.textContent = 'Failed to save. Try again.';
+      }
+    } catch {
+      document.getElementById('saveStatus').textContent = 'Error saving config.';
+    }
+  };
+
+  window.confirmAction = async (action, message) => {
+    if (!confirm(message)) return;
+    const token = await auth.currentUser.getIdToken();
+    await fetch('/api/system/danger/' + action, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    alert('Action completed.');
+  };
+</script>
+</body>
+</html>
