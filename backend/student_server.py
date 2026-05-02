@@ -290,8 +290,15 @@ def weekly_summary_api():
         uid, _, _ = verify_token(request, allowed_roles=['student'])
         ws = week_start()
 
+        def serialize(record):
+            """Convert Firestore record to JSON-safe dict with ISO logged_at string"""
+            d = record.to_dict()
+            if 'logged_at' in d and hasattr(d['logged_at'], 'isoformat'):
+                d['logged_at'] = d['logged_at'].isoformat()
+            return d
+
         def get_records(col):
-            return [r.to_dict() for r in
+            return [serialize(r) for r in
                     db.collection('users').document(uid).collection(col)
                     .where('logged_at', '>=', ws).stream()]
 
@@ -310,35 +317,166 @@ def weekly_summary_api():
 
 @app.route('/api/counseling/request', methods=['POST'])
 def api_counseling_request():
-    """Request counseling session"""
+    """Create a new counseling request. Returns the new session_id."""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
         body = request.get_json()
-        db.collection('counseling_sessions').add({
-            'student_uid': uid,
-            'message': body.get('message'),
-            'status': 'pending',
-            'created_at': datetime.now(timezone.utc)
+
+        # Fetch student name for counselor-side display
+        s_doc = db.collection('users').document(uid).get()
+        student_name = ''
+        if s_doc.exists:
+            s = s_doc.to_dict()
+            student_name = s.get('name') or s.get('displayName', '')
+
+        now = datetime.now(timezone.utc)
+        _, new_ref = db.collection('counseling_sessions').add({
+            'student_uid':  uid,
+            'student_name': student_name,
+            'message':      body.get('message'),
+            'status':       'pending',
+            'source':       'request',   # distinguishes from risk-alert auto-sessions
+            'created_at':   now,
         })
-        return jsonify({'success': True, 'message': 'Counseling request sent!'})
+
+        # Save the opening message as the first message in the sub-collection
+        db.collection('counseling_sessions').document(new_ref.id)\
+          .collection('messages').add({
+              'sender':     student_name or uid,
+              'sender_uid': uid,
+              'role':       'student',
+              'text':       body.get('message'),
+              'timestamp':  now,
+          })
+
+        return jsonify({'success': True, 'session_id': new_ref.id,
+                        'message': 'Counseling request sent!'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
-@app.route('/api/counseling/message', methods=['POST'])
-def api_counseling_message():
-    """Send counseling message"""
+
+@app.route('/api/counseling/session', methods=['GET'])
+def api_counseling_session():
+    """Return the student's most recent non-closed counseling session."""
     try:
-        uid, decoded, role = verify_token(request, allowed_roles=['student'])
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+
+        # Look for active first, then pending, then declined
+        for status in ('active', 'pending', 'declined'):
+            docs = list(
+                db.collection('counseling_sessions')
+                  .where('student_uid', '==', uid)
+                  .where('status', '==', status)
+                  .order_by('created_at', direction='DESCENDING')
+                  .limit(1)
+                  .stream()
+            )
+            if docs:
+                doc = docs[0]
+                session = doc.to_dict()
+                return jsonify({'success': True, 'session': {
+                    'session_id': doc.id,
+                    'status':     session.get('status'),
+                    'created_at': session.get('created_at').isoformat()
+                                  if hasattr(session.get('created_at'), 'isoformat') else None,
+                }})
+
+        return jsonify({'success': True, 'session': None})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/api/session/<session_id>/messages', methods=['GET'])
+def api_session_messages(session_id):
+    """Return all messages for a session (student side)."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+
+        session_doc = db.collection('counseling_sessions').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({'success': False, 'message': 'Session not found'}), 404
+        if session_doc.to_dict().get('student_uid') != uid:
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
+        msgs_docs = db.collection('counseling_sessions').document(session_id)\
+                      .collection('messages')\
+                      .order_by('timestamp')\
+                      .stream()
+
+        messages = []
+        for doc in msgs_docs:
+            msg = doc.to_dict()
+            ts = msg.get('timestamp')
+            messages.append({
+                'id':        doc.id,
+                'sender':    msg.get('sender', ''),
+                'role':      msg.get('role', ''),
+                'text':      msg.get('text', ''),
+                'timestamp': ts.isoformat() if hasattr(ts, 'isoformat') else None,
+            })
+
+        return jsonify({'success': True, 'messages': messages})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/api/session/<session_id>/message', methods=['POST'])
+def api_session_send_message(session_id):
+    """Student sends a message in an active session."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
         body = request.get_json()
-        session_id = body.get('session_id')
+        text = (body.get('text') or '').strip()
+        if not text:
+            return jsonify({'success': False, 'message': 'Message text required'}), 400
+
+        session_doc = db.collection('counseling_sessions').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({'success': False, 'message': 'Session not found'}), 404
+        if session_doc.to_dict().get('student_uid') != uid:
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
+        s_doc = db.collection('users').document(uid).get()
+        student_name = ''
+        if s_doc.exists:
+            s = s_doc.to_dict()
+            student_name = s.get('name') or s.get('displayName', '')
+
+        now = datetime.now(timezone.utc)
         db.collection('counseling_sessions').document(session_id)\
           .collection('messages').add({
-            'sender': uid,
-            'role': role,
-            'text': body.get('text'),
-            'timestamp': datetime.now(timezone.utc)
-        })
+              'sender':     student_name or uid,
+              'sender_uid': uid,
+              'role':       'student',
+              'text':       text,
+              'timestamp':  now,
+          })
         return jsonify({'success': True, 'message': 'Message sent!'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+# ─── API: RESOURCE LIBRARY ───────────────────────────────────────────────
+
+@app.route('/api/resources', methods=['GET'])
+def api_resources_list():
+    """Return all resources published by counselors."""
+    try:
+        verify_token(request, allowed_roles=['student'])
+        docs = db.collection('resources') \
+                 .order_by('created_at', direction='DESCENDING') \
+                 .stream()
+        resources = []
+        for doc in docs:
+            r = doc.to_dict()
+            resources.append({
+                'id':          doc.id,
+                'title':       r.get('title', ''),
+                'category':    r.get('category', ''),
+                'description': r.get('description', ''),
+                'link':        r.get('link', ''),
+                'read_time':   r.get('read_time', ''),
+            })
+        return jsonify({'success': True, 'resources': resources})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 

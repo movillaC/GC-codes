@@ -9,8 +9,9 @@
   :root { --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #2db84b; --green-hover: #25a342; --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 220px; }
   html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
   .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; flex-shrink: 0; }
+  .sidebar-scroll { flex: 1; overflow-y: auto; }
   .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
   .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; cursor: pointer; }
   .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
@@ -23,7 +24,7 @@
   .quick-log-items { display: none; flex-direction: column; }
   .quick-log-items.open { display: flex; }
   .quick-log-items .nav-item { padding: 9px 24px 9px 36px; font-size: 13px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .sidebar-bottom { flex-shrink:0; border-top: 1px solid rgba(255,255,255,0.2); padding: 8px 0 48px; }
   .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
   .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
   .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -59,6 +60,7 @@
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-logo"><span>Student Portal</span></div>
+    <div class="sidebar-scroll">
     <a class="nav-item" href="/dashboard">Dashboard</a>
     <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
     <a class="nav-item" href="/resource-library">Resource Library</a>
@@ -75,6 +77,7 @@
       <a class="nav-item" href="/ai-chat">AI Chat</a>
       <a class="nav-item" href="/activity-log">Activity Log</a>
       <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    </div>
     </div>
     <div class="sidebar-bottom">
       <a class="nav-item" href="/about">About Us</a>

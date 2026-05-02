@@ -6,133 +6,507 @@
 <title>Risk Alerts — Counselor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg: #f5f0ff; --surface: #ffffff; --border: #e2d9f3; --text-primary: #1a1d23; --text-secondary: #5a6075; --purple: #7c3aed; --purple-hover: #6d28d9; --purple-light: #ede9fe; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 240px; }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--purple); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
-  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
-  .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
-  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
-  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
-  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
-  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
-  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 780px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.12; pointer-events: none; z-index: 0; }
-  .watermark svg { width: 220px; height: 220px; }
-  .card-content { position: relative; z-index: 1; }
-  .purple-btn { background: var(--purple); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-block; }
-  .purple-btn:hover { background: var(--purple-hover); }
-  .outline-btn { background: transparent; color: var(--purple); border: 1.5px solid var(--purple); border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .outline-btn:hover { background: var(--purple-light); }
-  .danger-btn { background: #dc2626; color: #fff; border: none; border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .danger-btn:hover { background: #b91c1c; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-  .badge.risk { background: #fee2e2; color: #dc2626; }
-  .badge.ok { background: #dcfce7; color: #16a34a; }
-  .badge.moderate { background: #fef9c3; color: #ca8a04; }
-  .badge.pending { background: #fef9c3; color: #ca8a04; }
-  .badge.approved { background: #dcfce7; color: #16a34a; }
-  .badge.declined { background: #fee2e2; color: #dc2626; }
-  .badge.active-session { background: var(--purple-light); color: var(--purple); }
-  .main-full { margin-left: var(--sidebar-width); flex: 1; padding: 32px; }
-  .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
-  .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
-  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; box-shadow: var(--shadow); }
-  .slabel { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .svalue { font-size: 28px; font-weight: 600; color: var(--text-primary); }
-  .stat-card.danger .svalue { color: #dc2626; }
-  .stat-card.warning .svalue { color: #ca8a04; }
-  .alerts-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-  .alerts-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
-  .ap-header { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; }
-  .alert-item { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
-  .alert-item:last-child { border-bottom: none; }
-  .alert-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-  .alert-dot.red { background: #dc2626; }
-  .alert-dot.yellow { background: #ca8a04; }
-  .alert-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
-  .alert-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
-  .alert-time { font-size: 11px; color: #bbb; }
-  .alert-actions { display: flex; gap: 6px; margin-top: 8px; }
-  .thresholds-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); padding: 18px 20px; }
-  .thresholds-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; }
-  .threshold-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 12px; }
-  .threshold-row:last-child { border-bottom: none; }
-  .th-label { font-size: 14px; color: var(--text-primary); flex: 1; }
-  .th-value { font-size: 13px; color: var(--text-secondary); }
-  .th-status { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: #16a34a; white-space: nowrap; }
+  :root { --bg:#f5f0ff; --surface:#ffffff; --border:#e2d9f3; --text-primary:#1a1d23; --text-secondary:#5a6075; --purple:#7c3aed; --purple-hover:#6d28d9; --purple-light:#ede9fe; --radius:10px; --shadow:0 1px 4px rgba(0,0,0,0.07); --sidebar-width:240px; }
+  html, body { height:100%; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width:var(--sidebar-width); background:var(--purple); display:flex; flex-direction:column; padding:32px 0 0; position:fixed; top:0; left:0; height:100vh; z-index:10; }
+  .sidebar-logo { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 20px 24px; border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:12px; flex-shrink:0; }
+  .sidebar-logo span { font-size:15px; font-weight:600; color:#fff; letter-spacing:0.04em; }
+  .sidebar-logo small { font-size:12px; color:rgba(255,255,255,0.6); }
+  .sidebar-main { flex:1; overflow:hidden; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:11px 24px; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); text-decoration:none; transition:background 0.15s,color 0.15s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,0.15); color:#fff; }
+  .nav-item.active { background:rgba(255,255,255,0.2); color:#fff; border-left-color:#fff; }
+  .nav-section-label { font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; padding:14px 24px 5px; }
+  .sidebar-bottom { flex-shrink:0; border-top:1px solid rgba(255,255,255,0.2); padding:8px 0 48px; }
+  .logout-btn { display:flex; align-items:center; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); cursor:pointer; background:none; border:none; padding:11px 24px; transition:color 0.15s,background 0.15s; width:100%; font-family:'DM Sans',sans-serif; border-left:3px solid transparent; }
+  .logout-btn:hover { color:#fff; background:rgba(255,255,255,0.15); }
+
+  .main-full { margin-left:var(--sidebar-width); flex:1; padding:32px; }
+
+  /* Page header row */
+  .page-header-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; }
+  .page-header-row .titles .page-title { font-size:22px; font-weight:600; margin-bottom:4px; }
+  .page-header-row .titles .page-subtitle { font-size:14px; color:var(--text-secondary); }
+
+  /* Stats row */
+  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 22px; box-shadow:var(--shadow); }
+  .slabel { font-size:12px; color:var(--text-secondary); font-weight:600; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em; }
+  .svalue { font-size:28px; font-weight:600; color:var(--text-primary); }
+  .stat-card.danger .svalue { color:#dc2626; }
+  .stat-card.warning .svalue { color:#ca8a04; }
+  .stat-card.good .svalue   { color:#16a34a; }
+  .loading-pulse { animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Alert panels */
+  .alerts-section { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
+  .alerts-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
+  .ap-header { padding:14px 18px; border-bottom:1px solid var(--border); font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+  .alert-item { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; gap:12px; }
+  .alert-item:last-child { border-bottom:none; }
+  .alert-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .alert-dot.red    { background:#dc2626; }
+  .alert-dot.yellow { background:#ca8a04; }
+  .alert-name  { font-size:14px; font-weight:600; margin-bottom:3px; }
+  .alert-email { font-size:12px; color:var(--text-secondary); margin-bottom:3px; }
+  .alert-desc  { font-size:13px; color:var(--text-secondary); margin-bottom:6px; }
+  .alert-time  { font-size:11px; color:#bbb; }
+  .alert-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .empty-panel { padding:28px 18px; text-align:center; font-size:13px; color:#bbb; }
+
+  /* Thresholds */
+  .thresholds-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:18px 20px; }
+  .thresholds-title { font-size:14px; font-weight:600; margin-bottom:14px; }
+  .threshold-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); gap:12px; }
+  .threshold-row:last-child { border-bottom:none; }
+  .th-label  { font-size:14px; flex:1; }
+  .th-value  { font-size:13px; color:var(--text-secondary); }
+  .th-status { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500; color:#16a34a; white-space:nowrap; }
+  .th-dot    { width:8px; height:8px; border-radius:50%; background:#16a34a; display:inline-block; }
+
+  /* Buttons */
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
+  .badge.risk     { background:#fee2e2; color:#dc2626; }
+  .badge.moderate { background:#fef9c3; color:#ca8a04; }
+  .purple-btn { background:var(--purple); color:#fff; border:none; border-radius:var(--radius); padding:6px 13px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+  .purple-btn:hover { background:var(--purple-hover); }
+  .purple-btn.lg { font-size:14px; padding:9px 18px; }
+  .purple-btn:disabled { opacity:0.6; cursor:not-allowed; }
+  .outline-btn { background:transparent; color:var(--purple); border:1.5px solid var(--purple); border-radius:var(--radius); padding:5px 11px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+  .outline-btn:hover { background:var(--purple-light); }
+  .outline-btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* ── Modal ─────────────────────────────────────────────────────────── */
+  .modal-backdrop {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+    z-index:100; align-items:center; justify-content:center;
+  }
+  .modal-backdrop.open { display:flex; }
+  .modal {
+    background:#fff; border-radius:16px; padding:28px 28px 24px;
+    width:100%; max-width:460px; box-shadow:0 8px 32px rgba(0,0,0,0.18);
+    animation:modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
+  .modal-title { font-size:17px; font-weight:600; margin-bottom:18px; }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:13px; font-weight:500; color:var(--text-secondary); margin-bottom:6px; }
+  .form-control {
+    width:100%; padding:9px 12px; border:1.5px solid var(--border);
+    border-radius:var(--radius); font-family:'DM Sans',sans-serif;
+    font-size:14px; color:var(--text-primary); outline:none;
+    transition:border-color 0.15s; box-sizing:border-box;
+  }
+  .form-control:focus { border-color:var(--purple); }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  .modal-cancel { background:none; border:1.5px solid var(--border); border-radius:var(--radius); padding:7px 16px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--text-secondary); cursor:pointer; }
+  .modal-cancel:hover { border-color:#bbb; }
+  .modal-error { font-size:12px; color:#dc2626; margin-top:10px; display:none; }
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span>GCSW</span>
-      <small>Counselor Portal</small>
+    <div class="sidebar-logo"><span>GCSW</span><small>Counselor Portal</small></div>
+    <div class="sidebar-main">
+      <a class="nav-item" href="/dashboard">Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" href="/students">Student Monitoring</a>
+      <a class="nav-item" href="/requests">Counseling Requests</a>
+      <a class="nav-item" href="/sessions">Active Sessions</a>
+      <a class="nav-item" href="/case-notes">Case Notes</a>
+      <a class="nav-item active" href="/risk-alerts">Risk Alerts</a>
     </div>
-    <a class="nav-item" href="/dashboard">Dashboard</a>
-    <div class="nav-section-label">Management</div>
-    <a class="nav-item" href="/students">Student Monitoring</a>
-    <a class="nav-item" href="/requests">Counseling Requests</a>
-    <a class="nav-item" href="/sessions">Active Sessions</a>
-    <a class="nav-item" href="/case-notes">Case Notes</a>
-    <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
     <div class="sidebar-bottom">
       <a class="nav-item" href="/about">About Us</a>
       <a class="nav-item" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
+
   <div class="main-full">
-    <div class="page-title">Risk Alerts</div>
-    <div class="page-subtitle">Monitor and respond to abnormal student health patterns</div>
-    <div class="stats-row">
-      <div class="stat-card danger"><div class="slabel">High Risk</div><div class="svalue">—</div></div>
-      <div class="stat-card warning"><div class="slabel">Moderate Risk</div><div class="svalue">—</div></div>
-      <div class="stat-card"><div class="slabel">Monitored Today</div><div class="svalue">—</div></div>
+
+    <!-- Page header with Create Alert button -->
+    <div class="page-header-row">
+      <div class="titles">
+        <div class="page-title">Risk Alerts</div>
+        <div class="page-subtitle">Monitor and respond to abnormal student health patterns</div>
+      </div>
+      <button class="purple-btn lg" onclick="openCreateModal()">+ Create Alert</button>
     </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card danger">
+        <div class="slabel">High Risk</div>
+        <div class="svalue loading-pulse" id="statHigh">—</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="slabel">Moderate Risk</div>
+        <div class="svalue loading-pulse" id="statMod">—</div>
+      </div>
+      <div class="stat-card good">
+        <div class="slabel">Monitored Today</div>
+        <div class="svalue loading-pulse" id="statMonitored">—</div>
+      </div>
+    </div>
+
+    <!-- Alert panels -->
     <div class="alerts-section">
       <div class="alerts-panel">
         <div class="ap-header">High Risk Alerts <span class="badge risk">Urgent</span></div>
-        <div class="alert-item"><div class="alert-dot red"></div><div><div class="alert-name">— Pending —</div><div class="alert-desc">High risk alerts will load from Firebase</div><div class="alert-time">—</div><div class="alert-actions"><button class="purple-btn" style="font-size:12px;padding:5px 12px;">Contact Student</button><button class="outline-btn" style="font-size:12px;padding:4px 10px;">Dismiss</button></div></div></div>
-        <div class="alert-item"><div class="alert-dot red"></div><div><div class="alert-name">— Pending —</div><div class="alert-desc">High risk alerts will load from Firebase</div><div class="alert-time">—</div><div class="alert-actions"><button class="purple-btn" style="font-size:12px;padding:5px 12px;">Contact Student</button><button class="outline-btn" style="font-size:12px;padding:4px 10px;">Dismiss</button></div></div></div>
+        <div id="highRiskList"><div class="empty-panel">Loading…</div></div>
       </div>
       <div class="alerts-panel">
         <div class="ap-header">Moderate Risk <span class="badge moderate">Monitor</span></div>
-        <div class="alert-item"><div class="alert-dot yellow"></div><div><div class="alert-name">— Pending —</div><div class="alert-desc">Moderate alerts will load from Firebase</div><div class="alert-time">—</div><div class="alert-actions"><button class="purple-btn" style="font-size:12px;padding:5px 12px;">Send Message</button><button class="outline-btn" style="font-size:12px;padding:4px 10px;">Dismiss</button></div></div></div>
-        <div class="alert-item"><div class="alert-dot yellow"></div><div><div class="alert-name">— Pending —</div><div class="alert-desc">Moderate alerts will load from Firebase</div><div class="alert-time">—</div><div class="alert-actions"><button class="purple-btn" style="font-size:12px;padding:5px 12px;">Send Message</button><button class="outline-btn" style="font-size:12px;padding:4px 10px;">Dismiss</button></div></div></div>
+        <div id="modRiskList"><div class="empty-panel">Loading…</div></div>
       </div>
     </div>
+
+    <!-- Thresholds -->
     <div class="thresholds-panel">
       <div class="thresholds-title">Alert Thresholds</div>
-      <div class="threshold-row"><span class="th-label">Mood — Very Sad for 3+ consecutive days</span><span class="th-value">Triggers high risk</span><span class="th-status"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block;"></span>Active</span></div>
-      <div class="threshold-row"><span class="th-label">Sleep — Less than 5 hrs for 3+ days</span><span class="th-value">Triggers moderate</span><span class="th-status"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block;"></span>Active</span></div>
-      <div class="threshold-row"><span class="th-label">Stress — Same stressor logged for 5+ days</span><span class="th-value">Triggers high risk</span><span class="th-status"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block;"></span>Active</span></div>
-      <div class="threshold-row"><span class="th-label">Water — Below 1L for 4+ consecutive days</span><span class="th-value">Triggers moderate</span><span class="th-status"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block;"></span>Active</span></div>
-      <div class="threshold-row"><span class="th-label">Activity — 0 mins for 7+ consecutive days</span><span class="th-value">Triggers moderate</span><span class="th-status"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block;"></span>Active</span></div>
+      <div class="threshold-row">
+        <span class="th-label">Mood — Very Sad for 3+ consecutive days</span>
+        <span class="th-value">Triggers high risk</span>
+        <span class="th-status"><span class="th-dot"></span>Active</span>
+      </div>
+      <div class="threshold-row">
+        <span class="th-label">Sleep — Less than 5 hrs for 3+ days</span>
+        <span class="th-value">Triggers moderate</span>
+        <span class="th-status"><span class="th-dot"></span>Active</span>
+      </div>
+      <div class="threshold-row">
+        <span class="th-label">Stress — Same stressor logged for 5+ days</span>
+        <span class="th-value">Triggers high risk</span>
+        <span class="th-status"><span class="th-dot"></span>Active</span>
+      </div>
+      <div class="threshold-row">
+        <span class="th-label">Water — Below 1L for 4+ consecutive days</span>
+        <span class="th-value">Triggers moderate</span>
+        <span class="th-status"><span class="th-dot"></span>Active</span>
+      </div>
+      <div class="threshold-row">
+        <span class="th-label">Activity — 0 mins for 7+ consecutive days</span>
+        <span class="th-value">Triggers moderate</span>
+        <span class="th-status"><span class="th-dot"></span>Active</span>
+      </div>
     </div>
   </div>
 </div>
-<script type="module">
-  // Data will load from Firebase when connected
 
+<!-- ── Create Risk Alert Modal ─────────────────────────────────────────── -->
+<div class="modal-backdrop" id="createModal" onclick="handleBackdropClick(event)">
+  <div class="modal">
+    <div class="modal-title">Create Risk Alert</div>
+
+    <div class="form-group">
+      <label for="modalStudent">Student</label>
+      <select class="form-control" id="modalStudent">
+        <option value="">Loading students…</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="modalLevel">Risk Level</label>
+      <select class="form-control" id="modalLevel">
+        <option value="high">High Risk</option>
+        <option value="medium">Moderate Risk</option>
+        <option value="low">Low Risk</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="modalDesc">Description <span style="color:#bbb;font-weight:400;">(optional)</span></label>
+      <textarea class="form-control" id="modalDesc" rows="3"
+        placeholder="Describe the reason for this alert…" style="resize:vertical;"></textarea>
+    </div>
+
+    <div class="modal-error" id="modalError"></div>
+
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeCreateModal()">Cancel</button>
+      <button class="purple-btn lg" id="modalSubmitBtn" onclick="submitCreateAlert()">Create Alert</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // Active nav
   document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+    item.classList.toggle('active', item.getAttribute('href') === window.location.pathname);
   });
+
+  // Logout
   document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js");
-      await signOut(auth);
-    } catch(e) {}
+    try { await signOut(auth); } catch (_) {}
     window.location.replace('/login');
   });
+
+  let _token = '';
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    _token = await user.getIdToken();
+    await Promise.all([loadAlerts(), loadDashboardStats(), loadStudents()]);
+  });
+
+  // ── Load risk alerts ───────────────────────────────────────────────────
+  async function loadAlerts() {
+    try {
+      const res  = await fetch('/api/risk-alerts', {
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      const alerts = data.alerts || [];
+      const high   = alerts.filter(a => a.level === 'high');
+      const mod    = alerts.filter(a => a.level === 'medium' || a.level === 'moderate');
+
+      setText('statHigh', high.length);
+      setText('statMod',  mod.length);
+      document.querySelectorAll('.loading-pulse').forEach(el => el.classList.remove('loading-pulse'));
+
+      renderAlertList('highRiskList', high, 'red');
+      renderAlertList('modRiskList',  mod,  'yellow');
+
+    } catch (err) {
+      console.error('Failed to load risk alerts:', err);
+      setHtml('highRiskList', `<div class="empty-panel">Failed to load. ${esc(err.message)}</div>`);
+      setHtml('modRiskList',  `<div class="empty-panel">Failed to load. ${esc(err.message)}</div>`);
+      document.querySelectorAll('.loading-pulse').forEach(el => {
+        el.textContent = 'Err';
+        el.classList.remove('loading-pulse');
+      });
+    }
+  }
+
+  // ── Load monitored-today stat ──────────────────────────────────────────
+  async function loadDashboardStats() {
+    try {
+      const res  = await fetch('/api/dashboard/stats', {
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setText('statMonitored', data.monitored_today ?? 0);
+      document.getElementById('statMonitored').classList.remove('loading-pulse');
+    } catch (_) {
+      setText('statMonitored', '—');
+      document.getElementById('statMonitored').classList.remove('loading-pulse');
+    }
+  }
+
+  // ── Load students into the modal dropdown ──────────────────────────────
+  async function loadStudents() {
+    try {
+      const res  = await fetch('/api/students', {
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      const select   = document.getElementById('modalStudent');
+      const students = data.students || [];
+
+      if (students.length === 0) {
+        select.innerHTML = '<option value="">No students assigned to you</option>';
+        return;
+      }
+
+      // value = student UID — this is what gets sent to the backend
+      select.innerHTML =
+        '<option value="">— Select a student —</option>' +
+        students.map(s => {
+          const label = esc(s.name || s.email || s.uid);
+          const sub   = s.email ? ` (${esc(s.email)})` : '';
+          return `<option value="${esc(s.uid)}">${label}${sub}</option>`;
+        }).join('');
+
+    } catch (err) {
+      document.getElementById('modalStudent').innerHTML =
+        '<option value="">Failed to load students</option>';
+      console.error('loadStudents error:', err);
+    }
+  }
+
+  // ── Render one alert panel ─────────────────────────────────────────────
+  function renderAlertList(containerId, alerts, dotColor) {
+    const container = document.getElementById(containerId);
+    if (alerts.length === 0) {
+      container.innerHTML = '<div class="empty-panel">No alerts in this category.</div>';
+      return;
+    }
+    container.innerHTML = alerts.map(a => `
+      <div class="alert-item" id="alert-${esc(a.id)}">
+        <div class="alert-dot ${dotColor}"></div>
+        <div style="flex:1;">
+          <div class="alert-name">${esc(a.student_name || a.student_uid || 'Unknown Student')}</div>
+          ${a.student_email ? `<div class="alert-email">${esc(a.student_email)}</div>` : ''}
+          <div class="alert-desc">${esc(a.description || '(no description)')}</div>
+          <div class="alert-time">${formatDate(a.created_at)}</div>
+          <div class="alert-actions">
+            <button class="purple-btn"
+              onclick="contactStudent('${esc(a.student_uid || '')}', '${esc(a.id)}')">
+              ${dotColor === 'red' ? 'Contact Student' : 'Send Message'}
+            </button>
+            <button class="outline-btn" id="dismiss-${esc(a.id)}"
+              onclick="dismissAlert('${esc(a.id)}')">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Dismiss / resolve alert ────────────────────────────────────────────
+  window.dismissAlert = async function(alertId) {
+    const btn = document.getElementById(`dismiss-${alertId}`);
+    if (btn) { btn.textContent = 'Resolving…'; btn.disabled = true; }
+    try {
+      const res  = await fetch(`/api/risk-alert/${alertId}/resolve`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      const card = document.getElementById(`alert-${alertId}`);
+      if (card) {
+        card.style.transition = 'opacity 0.3s';
+        card.style.opacity    = '0';
+        setTimeout(() => { card.remove(); updateEmptyStates(); }, 300);
+      }
+      await loadAlerts();
+    } catch (err) {
+      alert(`Failed to dismiss alert: ${err.message}`);
+      if (btn) { btn.textContent = 'Dismiss'; btn.disabled = false; }
+    }
+  };
+
+  // ── Contact Student: auto-create session if needed, then open chat ────
+  window.contactStudent = async function(studentUid, alertId) {
+    if (!studentUid) { alert('No student ID available.'); return; }
+    try {
+      const res  = await fetch('/api/risk-alert/start-session', {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ student_uid: studentUid, alert_id: alertId || '' }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      // Navigate directly to the session — no approval queue needed
+      window.location.href = `/sessions?session=${encodeURIComponent(data.session_id)}`;
+    } catch (err) {
+      alert(`Failed to open session: ${err.message}`);
+    }
+  };
+
+  // ── Modal helpers ──────────────────────────────────────────────────────
+  window.openCreateModal = function() {
+    document.getElementById('modalStudent').value       = '';
+    document.getElementById('modalLevel').value         = 'high';
+    document.getElementById('modalDesc').value          = '';
+    document.getElementById('modalError').style.display = 'none';
+    document.getElementById('modalError').textContent   = '';
+    document.getElementById('createModal').classList.add('open');
+  };
+
+  window.closeCreateModal = function() {
+    document.getElementById('createModal').classList.remove('open');
+  };
+
+  window.handleBackdropClick = function(e) {
+    if (e.target === document.getElementById('createModal')) closeCreateModal();
+  };
+
+  // ── Submit new alert to backend ────────────────────────────────────────
+  window.submitCreateAlert = async function() {
+    const studentUid  = document.getElementById('modalStudent').value.trim();
+    const level       = document.getElementById('modalLevel').value;
+    const description = document.getElementById('modalDesc').value.trim();
+    const errEl       = document.getElementById('modalError');
+    const submitBtn   = document.getElementById('modalSubmitBtn');
+
+    if (!studentUid) {
+      errEl.textContent   = 'Please select a student.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    errEl.style.display   = 'none';
+    submitBtn.textContent = 'Creating…';
+    submitBtn.disabled    = true;
+
+    try {
+      const res = await fetch('/api/risk-alert', {
+        method:  'POST',
+        headers: {
+          Authorization:  `Bearer ${_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          student_uid: studentUid,  // ← real UID, always populated from dropdown
+          level,
+          description,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      closeCreateModal();
+      await loadAlerts();   // refresh panels + counts
+
+    } catch (err) {
+      errEl.textContent   = `Failed to create alert: ${err.message}`;
+      errEl.style.display = 'block';
+    } finally {
+      submitBtn.textContent = 'Create Alert';
+      submitBtn.disabled    = false;
+    }
+  };
+
+  function updateEmptyStates() {
+    ['highRiskList', 'modRiskList'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.querySelectorAll('.alert-item').length === 0) {
+        el.innerHTML = '<div class="empty-panel">No alerts in this category.</div>';
+      }
+    });
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val ?? '—';
+  }
+  function setHtml(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+  function formatDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-PH', {
+      month:'short', day:'numeric', year:'numeric',
+      hour:'numeric', minute:'2-digit',
+    });
+  }
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 </script>
 </body>
 </html>

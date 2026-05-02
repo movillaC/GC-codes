@@ -6,78 +6,115 @@
 <title>Counseling</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #2db84b; --green-hover: #25a342; --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 220px; }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  :root {
+    --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea;
+    --text-primary: #1a1d23; --text-secondary: #5a6075;
+    --green: #2db84b; --green-hover: #25a342;
+    --blue-bar: #2979ff; --radius: 10px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 220px;
+  }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); margin: 0; }
   .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
+
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; flex-shrink: 0; }
+  .sidebar-scroll { flex: 1; overflow-y: auto; }
   .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; cursor: pointer; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s; border-left: 3px solid transparent; cursor: pointer; }
   .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
   .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
   .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
-  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s; user-select: none; }
+  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; transition: background 0.15s; user-select: none; }
   .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
   .quick-log-arrow { font-size: 11px; transition: transform 0.2s; }
   .quick-log-arrow.open { transform: rotate(180deg); }
   .quick-log-items { display: none; flex-direction: column; }
   .quick-log-items.open { display: flex; }
   .quick-log-items .nav-item { padding: 9px 24px 9px 36px; font-size: 13px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
-  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.2); padding: 8px 0 16px; flex-shrink: 0; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; transition: background 0.15s; }
   .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
-  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 700px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.15; pointer-events: none; z-index: 0; }
-  .watermark svg { width: 220px; height: 220px; }
-  .card-content { position: relative; z-index: 1; }
-  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-  .go-back { font-size: 14px; color: var(--text-secondary); text-decoration: none; transition: color 0.15s; cursor: pointer; }
+
+  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; padding: 28px; box-sizing: border-box; }
+  .chat-shell { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 780px; margin: 0 auto; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; position: relative; height: calc(100vh - 56px); }
+
+  .watermark { position: absolute; top: -20px; right: -20px; opacity: 0.07; pointer-events: none; z-index: 0; }
+  .watermark svg { width: 200px; height: 200px; }
+
+  .chat-header { padding: 20px 28px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; position: relative; z-index: 1; }
+  .title { font-size: 18px; font-weight: 600; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .go-back { font-size: 14px; color: var(--text-secondary); text-decoration: none; }
   .go-back:hover { color: var(--text-primary); }
-  .save-btn { width: 100%; background: var(--green); color: #fff; border: none; border-radius: var(--radius); padding: 14px; font-family: 'DM Sans',sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
-  .save-btn:hover { background: var(--green-hover); }
-  .message { text-align: center; margin-top: 10px; font-size: 14px; min-height: 20px; color: var(--green); opacity: 0; transition: opacity 0.3s; }
-  .message.show { opacity: 1; } .message.error { color: #e53935; }
-  .main{margin-left:var(--sidebar-width);flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 40px 28px;width:100%;max-width:700px;box-shadow:var(--shadow);position:relative;overflow:hidden;display:flex;flex-direction:column;height:560px;}
-  .card-title{font-size:18px;font-weight:600;color:var(--text-primary);}
-  .card-subtitle{font-size:13px;color:var(--text-secondary);margin-top:2px;}
-  .chat-window{flex:1;border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin:14px 0;background:#fafafa;}
-  .msg-row{display:flex;align-items:flex-end;gap:8px;}
-  .msg-row.student{justify-content:flex-end;}.msg-row.counselor{justify-content:flex-start;}
-  .bubble{max-width:65%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.5;}
-  .msg-row.counselor .bubble{background:#e2e5ea;color:var(--text-primary);border-bottom-left-radius:4px;}
-  .msg-row.student .bubble{background:var(--green);color:#fff;border-bottom-right-radius:4px;}
-  .sender-label{font-size:11px;color:#bbb;margin-bottom:3px;text-align:right;}
-  .msg-row.counselor .sender-label{text-align:left;}
-  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:#bbb;font-size:14px;gap:8px;}
-  .input-row{display:flex;gap:10px;flex-shrink:0;}
-  .chat-input{flex:1;border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-primary);outline:none;transition:border-color 0.15s;}
-  .chat-input:focus{border-color:var(--green);}.chat-input::placeholder{color:#bbb;}
-  .send-btn{background:var(--green);color:#fff;border:none;border-radius:var(--radius);padding:11px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
-  .send-btn:hover{background:var(--green-hover);}
+
+  .status-bar { padding: 8px 28px; font-size: 12px; font-weight: 500; display: flex; align-items: center; flex-shrink: 0; border-bottom: 1px solid var(--border); background: #f8f9fa; position: relative; z-index: 1; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; display: inline-block; flex-shrink: 0; }
+  .status-dot.pending  { background: #f59e0b; }
+  .status-dot.active   { background: var(--green); }
+  .status-dot.none     { background: #d1d5db; }
+  .status-dot.declined { background: #ef4444; }
+  .status-dot.closed   { background: #9ca3af; }
+
+  .chat-window { flex: 1; overflow-y: auto; padding: 20px 28px; display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: #bbb; font-size: 14px; gap: 6px; text-align: center; }
+  .empty-state .icon { font-size: 36px; margin-bottom: 4px; }
+
+  .msg-group { display: flex; flex-direction: column; gap: 2px; }
+  .sender-label { font-size: 11px; color: #bbb; margin-bottom: 2px; }
+  .msg-row { display: flex; }
+  .msg-row.student  { justify-content: flex-end; }
+  .msg-row.counselor { justify-content: flex-start; }
+  .msg-row.student  .sender-label { text-align: right; }
+  .msg-row.counselor .sender-label { text-align: left; }
+  .bubble { max-width: 65%; padding: 9px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+  .msg-row.counselor .bubble { background: #e8eaed; color: var(--text-primary); border-bottom-left-radius: 4px; }
+  .msg-row.student   .bubble { background: var(--green); color: #fff; border-bottom-right-radius: 4px; }
+  .msg-timestamp { font-size: 10px; color: #bbb; margin-top: 2px; }
+  .student-side  { align-items: flex-end; }
+  .counselor-side { align-items: flex-start; }
+
+  .notice { background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius); padding: 10px 16px; font-size: 13px; color: #92400e; margin: 0 28px; display: none; flex-shrink: 0; position: relative; z-index: 1; }
+  .notice.show { display: block; }
+
+  .input-area { padding: 14px 28px 20px; border-top: 1px solid var(--border); flex-shrink: 0; position: relative; z-index: 1; }
+  .input-row { display: flex; gap: 10px; }
+  .chat-input { flex: 1; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary); outline: none; transition: border-color 0.15s; }
+  .chat-input:focus { border-color: var(--green); }
+  .chat-input::placeholder { color: #bbb; }
+  .chat-input:disabled { background: #f3f4f6; cursor: not-allowed; }
+  .send-btn { background: var(--green); color: #fff; border: none; border-radius: var(--radius); padding: 11px 24px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .send-btn:hover:not(:disabled) { background: var(--green-hover); }
+  .send-btn:disabled { background: #d1d5db; cursor: not-allowed; }
+
+  .spinner { width: 22px; height: 22px; border: 2px solid #e5e7eb; border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 30px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .input-hint { font-size: 12px; color: #9ca3af; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; }
+  .input-hint.hidden { display: none; }
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-logo"><span>Student Portal</span></div>
-    <a class="nav-item" href="/dashboard">Dashboard</a>
-    <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
-    <a class="nav-item" href="/resource-library">Resource Library</a>
-    <a class="nav-item" href="/counseling">Counseling</a>
-    <div class="nav-section-label">Features</div>
-    <div class="quick-log-toggle" onclick="toggleQuickLog()">
-      Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
-    </div>
-    <div class="quick-log-items" id="quickLogItems">
-      <a class="nav-item" href="/mood-tracker">Log Mood</a>
-      <a class="nav-item" href="/stress-note">Stress Note</a>
-      <a class="nav-item" href="/water-intake">Water Intake</a>
-      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
-      <a class="nav-item" href="/ai-chat">AI Chat</a>
-      <a class="nav-item" href="/activity-log">Activity Log</a>
-      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    <div class="sidebar-scroll">
+      <a class="nav-item" href="/dashboard">Dashboard</a>
+      <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
+      <a class="nav-item" href="/resource-library">Resource Library</a>
+      <a class="nav-item active" href="/counseling">Counseling</a>
+      <div class="nav-section-label">Features</div>
+      <div class="quick-log-toggle" onclick="toggleQuickLog()">
+        Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
+      </div>
+      <div class="quick-log-items" id="quickLogItems">
+        <a class="nav-item" href="/mood-tracker">Log Mood</a>
+        <a class="nav-item" href="/stress-note">Stress Note</a>
+        <a class="nav-item" href="/water-intake">Water Intake</a>
+        <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+        <a class="nav-item" href="/ai-chat">AI Chat</a>
+        <a class="nav-item" href="/activity-log">Activity Log</a>
+        <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+      </div>
     </div>
     <div class="sidebar-bottom">
       <a class="nav-item" href="/about">About Us</a>
@@ -85,64 +122,331 @@
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
+
   <div class="main">
-    <div class="card">
-      <div class="watermark"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/><circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/><text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text></svg></div>
-      <div class="card-content" style="display:flex;flex-direction:column;height:100%;position:relative;z-index:1;">
-        <div class="card-header">
-          <div><div class="card-title">Counseling</div><div class="card-subtitle">Send a message to request a counseling session</div></div>
-          <a class="go-back" href="/dashboard">Go back &gt;</a>
+    <div class="chat-shell">
+      <div class="watermark">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/>
+          <text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text>
+        </svg>
+      </div>
+
+      <div class="chat-header">
+        <div>
+          <div class="title">Counseling</div>
+          <div class="subtitle" id="headerSubtitle">Loading…</div>
         </div>
-        <div class="chat-window" id="chatWindow">
-          <div class="empty-state" id="emptyState">
-            <span>No messages yet</span>
-            <span style="font-size:12px;">Send a message to start your counseling session</span>
-          </div>
+        <a class="go-back" href="/dashboard">Go back &gt;</a>
+      </div>
+
+      <div class="status-bar">
+        <span class="status-dot none" id="statusDot"></span>
+        <span id="statusText">Checking…</span>
+      </div>
+
+      <div class="chat-window" id="chatWindow">
+        <div class="spinner" id="loadingSpinner"></div>
+      </div>
+
+      <div class="notice" id="notice"></div>
+
+      <div class="input-area">
+        <div class="input-hint" id="inputHint">
+          📋 Your first message will be sent as a <strong>counseling request</strong> to an available counselor.
         </div>
         <div class="input-row">
-          <input class="chat-input" id="chatInput" type="text" placeholder="Type your message to the counselor..."/>
-          <button class="send-btn" id="sendBtn">Send</button>
+          <input class="chat-input" id="chatInput" type="text" placeholder="Describe what you need help with…" disabled />
+          <button class="send-btn" id="sendBtn" disabled>Send</button>
         </div>
       </div>
     </div>
   </div>
 </div>
-<script type="module">
-  import { auth } from '/static/firebase_config.js';
-  auth.onAuthStateChanged(user=>{ if(!user) window.location.href='/login'; });
-  const input=document.getElementById('chatInput'),win=document.getElementById('chatWindow');
-  input.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
-  document.getElementById('sendBtn').addEventListener('click',sendMsg);
-  function sendMsg(){
-    const text=input.value.trim();if(!text)return;
-    document.getElementById('emptyState')?.remove();
-    appendMsg(text,'student','You');input.value='';
-    // Counselor response will come from Firebase/backend when connected
-  }
-  function appendMsg(text,type,sender){
-    const wrap=document.createElement('div');
-    const label=document.createElement('div');label.className='sender-label';label.textContent=sender;
-    const row=document.createElement('div');row.className='msg-row '+type;
-    const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;
-    row.appendChild(bubble);wrap.appendChild(label);wrap.appendChild(row);
-    win.appendChild(wrap);win.scrollTop=win.scrollHeight;
-  }
 
-  window.toggleQuickLog = function() {
+<script type="module">
+  import { auth, db } from '/static/firebase_config.js';
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import {
+    collection, query, where, orderBy, onSnapshot,
+    doc, addDoc, serverTimestamp, limit, getDocs
+  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  // Nav
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('href') === window.location.pathname);
+  });
+  window.toggleQuickLog = () => {
     document.getElementById('quickLogItems').classList.toggle('open');
     document.getElementById('quickArrow').classList.toggle('open');
   };
-  document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
-  });
+
+  // Logout
   document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-      await signOut(auth);
-    } catch(e) {}
+    try { await signOut(auth); } catch (_) {}
     window.location.href = '/login';
   });
+
+  // ── State ──────────────────────────────────────────────────────────────
+  let currentUser      = null;
+  let sessionId        = null;
+  let sessionStatus    = null;
+  let unsubMessages    = null;   // onSnapshot unsubscribe for messages
+  let unsubSession     = null;   // onSnapshot unsubscribe for session doc
+
+  // ── Auth ───────────────────────────────────────────────────────────────
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.href = '/login'; return; }
+    currentUser = user;
+    await init();
+  });
+
+  // ── Init: find existing session then attach listeners ──────────────────
+  async function init() {
+    try {
+      // Check for active session first, then pending, then declined
+      for (const status of ['active', 'pending', 'declined']) {
+        const q = query(
+          collection(db, 'counseling_sessions'),
+          where('student_uid', '==', currentUser.uid),
+          where('status', '==', status),
+          orderBy('created_at', 'desc'),
+          limit(1)
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const docSnap = snap.docs[0];
+          sessionId     = docSnap.id;
+          sessionStatus = docSnap.data().status;
+          updateUI();
+          attachSessionListener();
+          attachMessagesListener();
+          return;
+        }
+      }
+      showNoSession();
+    } catch (err) {
+      console.error('Init error:', err);
+      showNoSession();
+    }
+  }
+
+  // ── Listen to session doc for status changes (pending→active, etc.) ────
+  function attachSessionListener() {
+    if (unsubSession) unsubSession();
+    unsubSession = onSnapshot(doc(db, 'counseling_sessions', sessionId), (snap) => {
+      if (!snap.exists()) {
+        // Session was deleted
+        sessionId = null; sessionStatus = null;
+        if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+        showNoSession();
+        return;
+      }
+      const newStatus = snap.data().status;
+      if (newStatus !== sessionStatus) {
+        sessionStatus = newStatus;
+        updateUI();
+        // If session just became active, make sure message listener is attached
+        if (newStatus === 'active' && !unsubMessages) attachMessagesListener();
+      }
+    });
+  }
+
+  // ── Listen to messages sub-collection in real time ─────────────────────
+  function attachMessagesListener() {
+    if (unsubMessages) unsubMessages();
+    const msgsRef = collection(db, 'counseling_sessions', sessionId, 'messages');
+    const q = query(msgsRef, orderBy('timestamp', 'asc'));
+
+    unsubMessages = onSnapshot(q, (snap) => {
+      document.getElementById('loadingSpinner')?.remove();
+      const messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderMessages(messages);
+    });
+  }
+
+  // ── Render messages ────────────────────────────────────────────────────
+  function renderMessages(messages) {
+    const win = document.getElementById('chatWindow');
+
+    if (messages.length === 0) {
+      win.innerHTML = sessionStatus === 'pending'
+        ? `<div class="empty-state"><div class="icon">⏳</div><div>Request sent!</div><div style="font-size:12px;">Waiting for a counselor to accept.</div></div>`
+        : `<div class="empty-state"><div class="icon">💬</div><div>No messages yet</div><div style="font-size:12px;">Type a message to start your session.</div></div>`;
+      return;
+    }
+
+    const atBottom = win.scrollHeight - win.scrollTop - win.clientHeight < 60;
+    win.innerHTML = '';
+
+    messages.forEach(msg => {
+      const isMe  = msg.role === 'student';
+      const side  = isMe ? 'student' : 'counselor';
+      const label = isMe ? 'You' : (msg.sender || 'Counselor');
+      const ts    = msg.timestamp?.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp);
+      const time  = isNaN(ts) ? '' : fmtTime(ts);
+
+      const group = document.createElement('div');
+      group.className = 'msg-group ' + (isMe ? 'student-side' : 'counselor-side');
+      group.style.cssText = `display:flex;flex-direction:column;align-items:${isMe ? 'flex-end' : 'flex-start'}`;
+      group.innerHTML = `
+        <div class="sender-label">${esc(label)}</div>
+        <div class="msg-row ${side}"><div class="bubble">${esc(msg.text)}</div></div>
+        <div class="msg-timestamp">${time}</div>`;
+      win.appendChild(group);
+    });
+
+    if (atBottom) win.scrollTop = win.scrollHeight;
+  }
+
+  // ── Update UI based on session status ──────────────────────────────────
+  function updateUI() {
+    const dot    = document.getElementById('statusDot');
+    const text   = document.getElementById('statusText');
+    const sub    = document.getElementById('headerSubtitle');
+    const input  = document.getElementById('chatInput');
+    const btn    = document.getElementById('sendBtn');
+    const notice = document.getElementById('notice');
+    const hint   = document.getElementById('inputHint');
+
+    dot.className = 'status-dot ' + (sessionStatus || 'none');
+    notice.classList.remove('show');
+
+    if (sessionStatus === 'active') {
+      text.textContent  = 'Counselor connected';
+      sub.textContent   = 'Active session — your counselor can see your messages';
+      input.disabled    = false;
+      input.placeholder = 'Type your message…';
+      btn.disabled      = false;
+      hint.classList.add('hidden');
+
+    } else if (sessionStatus === 'pending') {
+      text.textContent  = 'Waiting for a counselor to accept…';
+      sub.textContent   = 'Request pending';
+      input.disabled    = true;
+      input.placeholder = 'Waiting for counselor…';
+      btn.disabled      = true;
+      hint.classList.add('hidden');
+
+    } else if (sessionStatus === 'declined') {
+      text.textContent   = 'Request declined';
+      sub.textContent    = 'Send a new message to request again';
+      input.disabled     = false;
+      input.placeholder  = 'Describe what you need help with…';
+      btn.disabled       = false;
+      notice.textContent = 'Your request was declined. You can send a new one.';
+      notice.classList.add('show');
+      hint.classList.remove('hidden');
+      // Detach listeners — student must start fresh
+      if (unsubSession)  { unsubSession();  unsubSession  = null; }
+      if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+      sessionId = null; sessionStatus = null;
+
+    } else if (sessionStatus === 'closed') {
+      text.textContent   = 'Session closed';
+      sub.textContent    = 'This session has ended';
+      input.disabled     = false;
+      input.placeholder  = 'Describe what you need help with…';
+      btn.disabled       = false;
+      notice.textContent = 'Session ended. Send a message to start a new one.';
+      notice.classList.add('show');
+      hint.classList.remove('hidden');
+      if (unsubSession)  { unsubSession();  unsubSession  = null; }
+      if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+      sessionId = null; sessionStatus = null;
+    }
+  }
+
+  function showNoSession() {
+    document.getElementById('loadingSpinner')?.remove();
+    const win = document.getElementById('chatWindow');
+    win.innerHTML = `<div class="empty-state"><div class="icon">💬</div><div>No active session</div><div style="font-size:12px;">Type a message below to request counseling.</div></div>`;
+    document.getElementById('statusDot').className      = 'status-dot none';
+    document.getElementById('statusText').textContent   = 'No session';
+    document.getElementById('headerSubtitle').textContent = 'Send a message to request a session';
+    document.getElementById('chatInput').disabled       = false;
+    document.getElementById('chatInput').placeholder    = 'Describe what you need help with…';
+    document.getElementById('sendBtn').disabled         = false;
+    document.getElementById('inputHint').classList.remove('hidden');
+  }
+
+  // ── Send ───────────────────────────────────────────────────────────────
+  document.getElementById('sendBtn').addEventListener('click', send);
+  document.getElementById('chatInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+
+  async function send() {
+    const input = document.getElementById('chatInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    input.value    = '';
+    input.disabled = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    try {
+      const token = await currentUser.getIdToken();
+
+      if (!sessionId) {
+        // ── New counseling request ────────────────────────────────────
+        const res  = await fetch('/api/counseling/request', {
+          method:  'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ message: text }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        sessionId     = data.session_id;
+        sessionStatus = 'pending';
+        updateUI();
+
+        // Attach real-time listeners on the new session
+        attachSessionListener();
+        attachMessagesListener();
+
+      } else {
+        // ── Message in existing active session ────────────────────────
+        // Write directly to Firestore — onSnapshot picks it up instantly
+        const s_doc = await getDocs(query(
+          collection(db, 'users'), where('__name__', '==', currentUser.uid), limit(1)
+        ));
+        const studentName = s_doc.empty ? '' : (s_doc.docs[0].data().name || s_doc.docs[0].data().displayName || '');
+
+        await addDoc(
+          collection(db, 'counseling_sessions', sessionId, 'messages'),
+          {
+            sender:     studentName || currentUser.uid,
+            sender_uid: currentUser.uid,
+            role:       'student',
+            text,
+            timestamp:  serverTimestamp(),
+          }
+        );
+      }
+
+    } catch (err) {
+      console.error('Send error:', err);
+      alert('Error: ' + err.message);
+    } finally {
+      if (sessionStatus !== 'pending') {
+        input.disabled = false;
+        document.getElementById('sendBtn').disabled = false;
+      }
+      input.focus();
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+  function fmtTime(date) {
+    return date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+  }
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 </script>
 </body>
 </html>

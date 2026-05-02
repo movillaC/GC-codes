@@ -6,118 +6,247 @@
 <title>Counseling Requests — Counselor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg: #f5f0ff; --surface: #ffffff; --border: #e2d9f3; --text-primary: #1a1d23; --text-secondary: #5a6075; --purple: #7c3aed; --purple-hover: #6d28d9; --purple-light: #ede9fe; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 240px; }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--purple); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
-  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
-  .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
-  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
-  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
-  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
-  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
-  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 780px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.12; pointer-events: none; z-index: 0; }
-  .watermark svg { width: 220px; height: 220px; }
-  .card-content { position: relative; z-index: 1; }
-  .purple-btn { background: var(--purple); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-block; }
-  .purple-btn:hover { background: var(--purple-hover); }
-  .outline-btn { background: transparent; color: var(--purple); border: 1.5px solid var(--purple); border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .outline-btn:hover { background: var(--purple-light); }
-  .danger-btn { background: #dc2626; color: #fff; border: none; border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .danger-btn:hover { background: #b91c1c; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-  .badge.risk { background: #fee2e2; color: #dc2626; }
-  .badge.ok { background: #dcfce7; color: #16a34a; }
-  .badge.moderate { background: #fef9c3; color: #ca8a04; }
-  .badge.pending { background: #fef9c3; color: #ca8a04; }
-  .badge.approved { background: #dcfce7; color: #16a34a; }
-  .badge.declined { background: #fee2e2; color: #dc2626; }
-  .badge.active-session { background: var(--purple-light); color: var(--purple); }
-  .main-full { margin-left: var(--sidebar-width); flex: 1; padding: 32px; }
-  .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
-  .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
-  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .filter-chips { display: flex; gap: 8px; }
-  .filter-chip { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
-  .filter-chip:hover { border-color: var(--purple); color: var(--purple); }
-  .filter-chip.active { background: var(--purple); border-color: var(--purple); color: #fff; }
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
-  table { width: 100%; border-collapse: collapse; }
-  th { background: var(--purple-light); color: var(--purple); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 20px; text-align: left; }
-  td { padding: 13px 20px; font-size: 14px; color: var(--text-primary); border-top: 1px solid var(--border); vertical-align: middle; }
-  tr:hover td { background: #faf8ff; }
-  .s-name { font-weight: 600; }
-  .s-email { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-  .msg-preview { font-size: 13px; color: var(--text-secondary); max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .actions { display: flex; gap: 6px; }
+  :root { --bg:#f5f0ff; --surface:#ffffff; --border:#e2d9f3; --text-primary:#1a1d23; --text-secondary:#5a6075; --purple:#7c3aed; --purple-hover:#6d28d9; --purple-light:#ede9fe; --radius:10px; --shadow:0 1px 4px rgba(0,0,0,0.07); --sidebar-width:240px; }
+  html, body { height:100%; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width:var(--sidebar-width); background:var(--purple); display:flex; flex-direction:column; padding:32px 0 0; position:fixed; top:0; left:0; height:100vh; z-index:10; }
+  .sidebar-logo { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 20px 24px; border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:12px; flex-shrink:0; }
+  .sidebar-logo span { font-size:15px; font-weight:600; color:#fff; letter-spacing:0.04em; }
+  .sidebar-logo small { font-size:12px; color:rgba(255,255,255,0.6); }
+  .sidebar-main { flex:1; overflow:hidden; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:11px 24px; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); text-decoration:none; transition:background 0.15s,color 0.15s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,0.15); color:#fff; }
+  .nav-item.active { background:rgba(255,255,255,0.2); color:#fff; border-left-color:#fff; }
+  .nav-section-label { font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; padding:14px 24px 5px; }
+  .sidebar-bottom { flex-shrink:0; border-top:1px solid rgba(255,255,255,0.2); padding:8px 0 48px; }
+  .logout-btn { display:flex; align-items:center; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); cursor:pointer; background:none; border:none; padding:11px 24px; transition:color 0.15s,background 0.15s; width:100%; font-family:'DM Sans',sans-serif; border-left:3px solid transparent; }
+  .logout-btn:hover { color:#fff; background:rgba(255,255,255,0.15); }
+  .main-full { margin-left:var(--sidebar-width); flex:1; padding:32px; }
+  .page-title { font-size:22px; font-weight:600; margin-bottom:6px; }
+  .page-subtitle { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
+  .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .filter-chips { display:flex; gap:8px; }
+  .filter-chip { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface); font-size:13px; font-weight:500; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; }
+  .filter-chip:hover { border-color:var(--purple); color:var(--purple); }
+  .filter-chip.active { background:var(--purple); border-color:var(--purple); color:#fff; }
+  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
+  table { width:100%; border-collapse:collapse; }
+  th { background:var(--purple-light); color:var(--purple); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; padding:12px 20px; text-align:left; }
+  td { padding:13px 20px; font-size:14px; border-top:1px solid var(--border); vertical-align:middle; }
+  tr:hover td { background:#faf8ff; }
+  .s-name { font-weight:600; }
+  .s-email { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .msg-preview { font-size:13px; color:var(--text-secondary); max-width:280px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
+  .badge.pending  { background:#fef9c3; color:#ca8a04; }
+  .badge.approved { background:#dcfce7; color:#16a34a; }
+  .badge.declined { background:#fee2e2; color:#dc2626; }
+  .actions { display:flex; gap:6px; }
+  .purple-btn { background:var(--purple); color:#fff; border:none; border-radius:var(--radius); padding:7px 14px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:background 0.15s; text-decoration:none; display:inline-block; }
+  .purple-btn:hover { background:var(--purple-hover); }
+  .outline-btn { background:transparent; color:var(--purple); border:1.5px solid var(--purple); border-radius:var(--radius); padding:6px 14px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+  .outline-btn:hover { background:var(--purple-light); }
+  .danger-btn { background:#dc2626; color:#fff; border:none; border-radius:var(--radius); padding:7px 14px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+  .danger-btn:hover { background:#b91c1c; }
+  .empty-state { text-align:center; color:#bbb; padding:40px 20px; font-size:14px; }
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span>GCSW</span>
-      <small>Counselor Portal</small>
+    <div class="sidebar-logo"><span>GCSW</span><small>Counselor Portal</small></div>
+    <div class="sidebar-main">
+      <a class="nav-item" href="/dashboard">Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" href="/students">Student Monitoring</a>
+      <a class="nav-item active" href="/requests">Counseling Requests</a>
+      <a class="nav-item" href="/sessions">Active Sessions</a>
+      <a class="nav-item" href="/case-notes">Case Notes</a>
+      <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
+      <a class="nav-item" href="/resources">Resource Library</a>
     </div>
-    <a class="nav-item" href="/dashboard">Dashboard</a>
-    <div class="nav-section-label">Management</div>
-    <a class="nav-item" href="/students">Student Monitoring</a>
-    <a class="nav-item" href="/requests">Counseling Requests</a>
-    <a class="nav-item" href="/sessions">Active Sessions</a>
-    <a class="nav-item" href="/case-notes">Case Notes</a>
-    <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
     <div class="sidebar-bottom">
       <a class="nav-item" href="/about">About Us</a>
       <a class="nav-item" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
+
   <div class="main-full">
     <div class="page-title">Counseling Requests</div>
     <div class="page-subtitle">Review and manage student consultation requests</div>
     <div class="toolbar">
       <div class="filter-chips">
-        <div class="filter-chip active" onclick="setFilter(this)">All</div>
-        <div class="filter-chip" onclick="setFilter(this)">Pending</div>
-        <div class="filter-chip" onclick="setFilter(this)">Approved</div>
-        <div class="filter-chip" onclick="setFilter(this)">Declined</div>
+        <div class="filter-chip active" data-filter="all">All</div>
+        <div class="filter-chip" data-filter="pending">Pending</div>
+        <div class="filter-chip" data-filter="active">Approved</div>
+        <div class="filter-chip" data-filter="declined">Declined</div>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Student</th><th>Message Preview</th><th>Date Sent</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td><div class="s-name">Juan Dela Cruz</div><div class="s-email">juan@gordoncollege.edu.ph</div></td><td><div class="msg-preview">I have been feeling very anxious lately and I think I need someone to talk to...</div></td><td>Apr 23, 2026</td><td><span class="badge pending">Pending</span></td><td><div class="actions"><button class="purple-btn" onclick="approveRequest('Juan Dela Cruz')">Approve</button><button class="danger-btn" onclick="declineRequest('Juan Dela Cruz')">Decline</button></div></td></tr>
-          <tr><td><div class="s-name">Maria Santos</div><div class="s-email">maria@gordoncollege.edu.ph</div></td><td><div class="msg-preview">I need help managing my academic stress. Can we schedule a session?</div></td><td>Apr 22, 2026</td><td><span class="badge approved">Approved</span></td><td><div class="actions"><a class="purple-btn" href="/sessions">Open Session</a></div></td></tr>
-          <tr><td><div class="s-name">Jose Reyes</div><div class="s-email">jose@gordoncollege.edu.ph</div></td><td><div class="msg-preview">Can I schedule a consultation? I have been having trouble sleeping...</div></td><td>Apr 20, 2026</td><td><span class="badge declined">Declined</span></td><td><div class="actions"><button class="outline-btn" onclick="approveRequest('Jose Reyes')">Re-approve</button></div></td></tr>
-          <tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px;font-size:13px;">— More requests will load from Firebase —</td></tr>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Message Preview</th>
+            <th>Date Sent</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="requestsBody">
+          <tr><td colspan="5" class="empty-state">Loading requests…</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </div>
-<script type="module">
-  window.setFilter = function(el) { document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); };
-  window.approveRequest = function(name) { if(confirm('Approve counseling request from '+name+'?')) { alert('Request approved! An active session has been created.'); } };
-  window.declineRequest = function(name) { if(confirm('Decline counseling request from '+name+'?')) { alert('Request declined.'); } };
 
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // Active nav
   document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+    item.classList.toggle('active', item.getAttribute('href') === window.location.pathname);
   });
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js");
-      await signOut(auth);
-    } catch(e) {}
+
+  // Logout
+  async function logout() {
+    try { await signOut(auth); } catch (_) {}
     window.location.replace('/login');
+  }
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+
+  let allRequests = [];
+  let currentFilter = 'all';
+  let _token = '';
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    _token = await user.getIdToken();
+    await loadRequests();
   });
+
+  async function loadRequests() {
+    try {
+      const res  = await fetch('/api/requests', {
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      allRequests = data.requests || [];
+      renderRequests();
+    } catch (err) {
+      console.error('Failed to load requests:', err);
+      document.getElementById('requestsBody').innerHTML =
+        `<tr><td colspan="5" class="empty-state">Failed to load requests. ${err.message}</td></tr>`;
+    }
+  }
+
+  function statusBadge(status) {
+    const map = {
+      pending:  '<span class="badge pending">Pending</span>',
+      active:   '<span class="badge approved">Approved</span>',
+      declined: '<span class="badge declined">Declined</span>',
+      closed:   '<span class="badge declined">Closed</span>',
+    };
+    return map[status] || `<span class="badge">${esc(status)}</span>`;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  function actionsFor(req) {
+    if (req.status === 'pending') {
+      return `
+        <div class="actions">
+          <button class="purple-btn" onclick="approve('${esc(req.session_id)}', '${esc(req.student_name)}')">Approve</button>
+          <button class="danger-btn"  onclick="decline('${esc(req.session_id)}', '${esc(req.student_name)}')">Decline</button>
+        </div>`;
+    }
+    if (req.status === 'active') {
+      return `<div class="actions"><a class="purple-btn" href="/sessions?session=${esc(req.session_id)}">Open Session</a></div>`;
+    }
+    if (req.status === 'declined') {
+      return `<div class="actions"><button class="outline-btn" onclick="approve('${esc(req.session_id)}', '${esc(req.student_name)}')">Re-approve</button></div>`;
+    }
+    return '—';
+  }
+
+  function renderRequests() {
+    const filtered = currentFilter === 'all'
+      ? allRequests
+      : allRequests.filter(r => r.status === currentFilter);
+
+    const tbody = document.getElementById('requestsBody');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No requests found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(req => `
+      <tr>
+        <td>
+          <div class="s-name">${esc(req.student_name || req.student_uid || '—')}</div>
+          <div class="s-email">${esc(req.student_email || '')}</div>
+        </td>
+        <td><div class="msg-preview">${esc(req.message || '(no message)')}</div></td>
+        <td>${formatDate(req.created_at)}</td>
+        <td>${statusBadge(req.status)}</td>
+        <td>${actionsFor(req)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+      renderRequests();
+    });
+  });
+
+  window.approve = async function(sessionId, name) {
+    if (!confirm(`Approve counseling request from ${name}?`)) return;
+    try {
+      const res = await fetch(`/api/session/${sessionId}/accept`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      alert('Request approved! An active session has been created.');
+      await loadRequests();
+    } catch (err) {
+      alert(`Failed to approve: ${err.message}`);
+    }
+  };
+
+  window.decline = async function(sessionId, name) {
+    if (!confirm(`Decline counseling request from ${name}?`)) return;
+    try {
+      const res = await fetch(`/api/session/${sessionId}/decline`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      alert('Request declined.');
+      await loadRequests();
+    } catch (err) {
+      alert(`Failed to decline: ${err.message}`);
+    }
+  };
+
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 </script>
 </body>
 </html>

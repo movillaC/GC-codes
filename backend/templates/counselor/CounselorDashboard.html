@@ -6,111 +6,145 @@
 <title>Dashboard — Counselor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg: #f5f0ff; --surface: #ffffff; --border: #e2d9f3; --text-primary: #1a1d23; --text-secondary: #5a6075; --purple: #7c3aed; --purple-hover: #6d28d9; --purple-light: #ede9fe; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 240px; }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--purple); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
-  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
-  .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
-  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
-  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
-  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
-  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
-  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 780px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.12; pointer-events: none; z-index: 0; }
-  .watermark svg { width: 220px; height: 220px; }
-  .card-content { position: relative; z-index: 1; }
-  .purple-btn { background: var(--purple); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-block; }
-  .purple-btn:hover { background: var(--purple-hover); }
-  .outline-btn { background: transparent; color: var(--purple); border: 1.5px solid var(--purple); border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .outline-btn:hover { background: var(--purple-light); }
-  .danger-btn { background: #dc2626; color: #fff; border: none; border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .danger-btn:hover { background: #b91c1c; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-  .badge.risk { background: #fee2e2; color: #dc2626; }
-  .badge.ok { background: #dcfce7; color: #16a34a; }
-  .badge.moderate { background: #fef9c3; color: #ca8a04; }
-  .badge.pending { background: #fef9c3; color: #ca8a04; }
-  .badge.approved { background: #dcfce7; color: #16a34a; }
-  .badge.declined { background: #fee2e2; color: #dc2626; }
-  .badge.active-session { background: var(--purple-light); color: var(--purple); }
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-  .stat { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-  .slbl { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-  .sval { font-size: 22px; font-weight: 600; color: var(--text-primary); }
-  .stat.alert .sval { color: #dc2626; }
-  .stat.good .sval { color: #16a34a; }
-  .stat.purple .sval { color: var(--purple); }
-  .stat.warn .sval { color: #ca8a04; }
-  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  :root { --bg:#f5f0ff; --surface:#ffffff; --border:#e2d9f3; --text-primary:#1a1d23; --text-secondary:#5a6075; --purple:#7c3aed; --purple-hover:#6d28d9; --purple-light:#ede9fe; --radius:10px; --shadow:0 1px 4px rgba(0,0,0,0.07); --sidebar-width:240px; }
+  html, body { height:100%; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width:var(--sidebar-width); background:var(--purple); display:flex; flex-direction:column; padding:32px 0 0; position:fixed; top:0; left:0; height:100vh; z-index:10; }
+  .sidebar-logo { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 20px 24px; border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:12px; flex-shrink:0; }
+  .sidebar-logo span { font-size:15px; font-weight:600; color:#fff; letter-spacing:0.04em; }
+  .sidebar-logo small { font-size:12px; color:rgba(255,255,255,0.6); }
+  .sidebar-main { flex:1; overflow:hidden; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:11px 24px; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); text-decoration:none; transition:background 0.15s,color 0.15s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,0.15); color:#fff; }
+  .nav-item.active { background:rgba(255,255,255,0.2); color:#fff; border-left-color:#fff; }
+  .nav-section-label { font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; padding:14px 24px 5px; }
+  .sidebar-bottom { flex-shrink:0; border-top:1px solid rgba(255,255,255,0.2); padding:8px 0 48px; }
+  .logout-btn { display:flex; align-items:center; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); cursor:pointer; background:none; border:none; padding:11px 24px; transition:color 0.15s,background 0.15s; width:100%; font-family:'DM Sans',sans-serif; border-left:3px solid transparent; }
+  .logout-btn:hover { color:#fff; background:rgba(255,255,255,0.15); }
+  .main { margin-left:var(--sidebar-width); flex:1; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:40px 48px 36px; width:100%; max-width:780px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .watermark { position:absolute; top:-30px; right:-30px; opacity:0.12; pointer-events:none; z-index:0; }
+  .watermark svg { width:220px; height:220px; }
+  .card-content { position:relative; z-index:1; }
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
+  .stat { border:1.5px solid var(--border); border-radius:var(--radius); padding:18px 20px; }
+  .slbl { font-size:11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+  .sval { font-size:22px; font-weight:600; color:var(--text-primary); }
+  .stat.alert .sval { color:#dc2626; }
+  .stat.good  .sval { color:#16a34a; }
+  .stat.purple .sval { color:var(--purple); }
+  .stat.warn  .sval { color:#ca8a04; }
+  .divider { height:1px; background:var(--border); margin:12px 0; }
+  .greeting { font-size:18px; font-weight:600; color:var(--text-primary); margin-bottom:16px; }
+  .loading-pulse { animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span>GCSW</span>
-      <small>Counselor Portal</small>
+    <div class="sidebar-logo"><span>GCSW</span><small>Counselor Portal</small></div>
+    <div class="sidebar-main">
+      <a class="nav-item active" href="/dashboard">Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" href="/students">Student Monitoring</a>
+      <a class="nav-item" href="/requests">Counseling Requests</a>
+      <a class="nav-item" href="/sessions">Active Sessions</a>
+      <a class="nav-item" href="/case-notes">Case Notes</a>
+      <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
+      <a class="nav-item" href="/resources">Resource Library</a>
     </div>
-    <a class="nav-item" href="/dashboard">Dashboard</a>
-    <div class="nav-section-label">Management</div>
-    <a class="nav-item" href="/students">Student Monitoring</a>
-    <a class="nav-item" href="/requests">Counseling Requests</a>
-    <a class="nav-item" href="/sessions">Active Sessions</a>
-    <a class="nav-item" href="/case-notes">Case Notes</a>
-    <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
     <div class="sidebar-bottom">
       <a class="nav-item" href="/about">About Us</a>
       <a class="nav-item" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
+
   <div class="main">
     <div class="card">
-      <div class="watermark"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="95" fill="none" stroke="#7c3aed" stroke-width="12"/><circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/><text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text></svg></div>
+      <div class="watermark">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#7c3aed" stroke-width="12"/>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/>
+          <text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text>
+        </svg>
+      </div>
       <div class="card-content">
+        <div class="greeting" id="greeting">Welcome back!</div>
         <div class="stats-grid">
-          <div class="stat"><div class="slbl">Total Students</div><div class="sval" id="totalStudents">—</div></div>
-          <div class="stat alert"><div class="slbl">At Risk</div><div class="sval" id="atRisk">—</div></div>
-          <div class="stat good"><div class="slbl">Cases Resolved</div><div class="sval" id="resolved">—</div></div>
+          <div class="stat"><div class="slbl">Total Students</div><div class="sval loading-pulse" id="totalStudents">—</div></div>
+          <div class="stat alert"><div class="slbl">At Risk</div><div class="sval loading-pulse" id="atRisk">—</div></div>
+          <div class="stat good"><div class="slbl">Cases Resolved</div><div class="sval loading-pulse" id="resolved">—</div></div>
         </div>
         <div class="divider"></div>
         <div class="stats-grid">
-          <div class="stat warn"><div class="slbl">Pending Requests</div><div class="sval" id="pending">—</div></div>
-          <div class="stat purple"><div class="slbl">Active Sessions</div><div class="sval" id="sessions">—</div></div>
-          <div class="stat"><div class="slbl">Case Notes</div><div class="sval" id="notes">—</div></div>
+          <div class="stat warn"><div class="slbl">Pending Requests</div><div class="sval loading-pulse" id="pending">—</div></div>
+          <div class="stat purple"><div class="slbl">Active Sessions</div><div class="sval loading-pulse" id="sessions">—</div></div>
+          <div class="stat"><div class="slbl">Case Notes</div><div class="sval loading-pulse" id="notes">—</div></div>
         </div>
         <div class="divider"></div>
         <div class="stats-grid">
-          <div class="stat alert"><div class="slbl">High Risk Alerts</div><div class="sval" id="highRisk">—</div></div>
-          <div class="stat warn"><div class="slbl">Moderate Alerts</div><div class="sval" id="modRisk">—</div></div>
-          <div class="stat good"><div class="slbl">Monitored Today</div><div class="sval" id="monitored">—</div></div>
+          <div class="stat alert"><div class="slbl">High Risk Alerts</div><div class="sval loading-pulse" id="highRisk">—</div></div>
+          <div class="stat warn"><div class="slbl">Moderate Alerts</div><div class="sval loading-pulse" id="modRisk">—</div></div>
+          <div class="stat good"><div class="slbl">Monitored Today</div><div class="sval loading-pulse" id="monitored">—</div></div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 <script type="module">
-  // All stat values will load from Firebase when connected
   import { auth } from '/static/firebase_config.js';
-  auth.onAuthStateChanged(user => { if (!user) window.location.replace('/login'); });
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   document.querySelectorAll('.nav-item').forEach(item => {
     if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+    else item.classList.remove('active');
   });
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js");
-      await signOut(auth);
-    } catch(e) {}
+
+  async function logout() {
+    try { await signOut(auth); } catch (_) {}
     window.location.replace('/login');
+  }
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    try {
+      const name = user.displayName || '';
+      if (name) document.getElementById('greeting').textContent = `Welcome back, ${name.split(' ')[0]}!`;
+    } catch (_) {}
+    await loadStats(user);
   });
+
+  async function loadStats(user) {
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/dashboard/stats', { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Failed');
+      setText('totalStudents', data.total_students);
+      setText('atRisk',        data.at_risk);
+      setText('resolved',      data.resolved);
+      setText('pending',       data.pending);
+      setText('sessions',      data.active_sessions);
+      setText('notes',         data.case_notes);
+      setText('highRisk',      data.high_risk_alerts);
+      setText('modRisk',       data.moderate_alerts);
+      setText('monitored',     data.monitored_today);
+      document.querySelectorAll('.loading-pulse').forEach(el => el.classList.remove('loading-pulse'));
+    } catch (err) {
+      document.querySelectorAll('.sval').forEach(el => { el.textContent = 'Err'; el.classList.remove('loading-pulse'); });
+    }
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? '—';
+  }
 </script>
 </body>
 </html>

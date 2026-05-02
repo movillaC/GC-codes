@@ -18,9 +18,10 @@
   .layout { display: flex; min-height: 100vh; }
 
   /* SIDEBAR */
-  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; }
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; flex-shrink: 0; }
   .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .sidebar-main { flex: 1; overflow: hidden; }
   .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
   .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
   .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
@@ -32,7 +33,7 @@
   .quick-log-items { display: none; flex-direction: column; }
   .quick-log-items.open { display: flex; }
   .quick-log-items .nav-item { padding: 10px 24px 10px 36px; font-size: 13px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .sidebar-bottom { flex-shrink:0; border-top: 1px solid rgba(255,255,255,0.2); padding: 8px 0 48px; }
   .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 12px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
   .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
 
@@ -41,121 +42,63 @@
   .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
   .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
 
-  /* SEARCH */
-  .search-bar {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 16px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--text-primary);
-    outline: none;
-    background: var(--surface);
-    margin-bottom: 20px;
-    transition: border-color 0.15s;
-  }
+  .search-bar { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary); outline: none; background: var(--surface); margin-bottom: 20px; transition: border-color 0.15s; }
   .search-bar:focus { border-color: var(--green); }
   .search-bar::placeholder { color: #bbb; }
 
-  /* CATEGORY FILTERS */
   .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
-  .filter-chip {
-    padding: 8px 18px;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
-    background: var(--surface);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
+  .filter-chip { padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
   .filter-chip:hover { border-color: var(--green); color: var(--green); }
   .filter-chip.active { background: var(--green); border-color: var(--green); color: #fff; }
 
-  /* ARTICLES GRID */
-  .articles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-  }
+  .articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 
-  .article-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: border-color 0.15s, transform 0.1s;
-    cursor: pointer;
-  }
+  .article-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s, transform 0.1s; }
   .article-card:hover { border-color: var(--green); transform: translateY(-2px); }
 
-  .article-category {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    width: fit-content;
-  }
-  .cat-mental { background: #ede9fe; color: #7c3aed; }
-  .cat-physical { background: #dcfce7; color: #16a34a; }
-  .cat-sleep { background: #dbeafe; color: #1d4ed8; }
+  .article-category { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; width: fit-content; }
+  .cat-mental    { background: #ede9fe; color: #7c3aed; }
+  .cat-physical  { background: #dcfce7; color: #16a34a; }
+  .cat-sleep     { background: #dbeafe; color: #1d4ed8; }
   .cat-nutrition { background: #fef9c3; color: #ca8a04; }
-  .cat-stress { background: #fee2e2; color: #dc2626; }
+  .cat-stress    { background: #fee2e2; color: #dc2626; }
+  .cat-other     { background: #f3f4f6; color: #374151; }
 
   .article-title { font-size: 15px; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
   .article-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; flex: 1; }
   .article-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
   .article-read-time { font-size: 12px; color: #bbb; }
-  .read-btn {
-    background: var(--green);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: background 0.15s;
-    text-decoration: none;
-  }
+  .read-btn { background: var(--green); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s; text-decoration: none; display: inline-block; }
   .read-btn:hover { background: var(--green-hover); }
+  .no-link { font-size: 12px; color: #bbb; }
 
   .no-results { text-align: center; color: #bbb; font-size: 14px; padding: 48px 0; grid-column: 1/-1; }
+  .loading-state { text-align: center; color: #bbb; font-size: 14px; padding: 48px 0; grid-column: 1/-1; }
+  .error-state { text-align: center; color: #dc2626; font-size: 14px; padding: 48px 0; grid-column: 1/-1; }
 </style>
 </head>
 <body>
 <div class="layout">
-
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span>Student Portal</span>
-    </div>
-    <a class="nav-item" href="/dashboard">Dashboard</a>
-    <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
-    <a class="nav-item active" href="/resource-library">Resource Library</a>
-    <div class="nav-section-label">Features</div>
-    <div class="quick-log-toggle" onclick="toggleQuickLog()">
-      Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
-    </div>
-    <div class="quick-log-items" id="quickLogItems">
-      <a class="nav-item" href="/mood-tracker">Log Mood</a>
-      <a class="nav-item" href="/stress-note">Stress Note</a>
-      <a class="nav-item" href="/water-intake">Water Intake</a>
-      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
-      <a class="nav-item" href="/ai-chat">AI Chat</a>
-      <a class="nav-item" href="/activity-log">Activity Log</a>
-      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    <div class="sidebar-logo"><span>Student Portal</span></div>
+    <div class="sidebar-main">
+      <a class="nav-item" href="/dashboard">Dashboard</a>
+      <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
+      <a class="nav-item active" href="/resource-library">Resource Library</a>
+      <a class="nav-item" href="/counseling">Counseling</a>
+      <div class="nav-section-label">Features</div>
+      <div class="quick-log-toggle" onclick="toggleQuickLog()">
+        Quick Log <span class="quick-log-arrow" id="quickArrow">&#9660;</span>
+      </div>
+      <div class="quick-log-items" id="quickLogItems">
+        <a class="nav-item" href="/mood-tracker">Log Mood</a>
+        <a class="nav-item" href="/stress-note">Stress Note</a>
+        <a class="nav-item" href="/water-intake">Water Intake</a>
+        <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+        <a class="nav-item" href="/ai-chat">AI Chat</a>
+        <a class="nav-item" href="/activity-log">Activity Log</a>
+        <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+      </div>
     </div>
     <div class="sidebar-bottom">
       <a class="nav-item" href="/about">About Us</a>
@@ -164,104 +107,112 @@
     </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="page-title">Resource Library</div>
     <div class="page-subtitle">Articles and tips to support your physical and mental well-being.</div>
 
-    <input class="search-bar" type="text" id="searchBar" placeholder="Search articles..." oninput="filterArticles()" />
+    <input class="search-bar" type="text" id="searchBar" placeholder="Search articles..." oninput="render()" />
 
     <div class="filters">
-      <div class="filter-chip active" onclick="setFilter('all', this)">All</div>
-      <div class="filter-chip" onclick="setFilter('Mental Health', this)">Mental Health</div>
-      <div class="filter-chip" onclick="setFilter('Physical Wellness', this)">Physical Wellness</div>
-      <div class="filter-chip" onclick="setFilter('Sleep', this)">Sleep</div>
-      <div class="filter-chip" onclick="setFilter('Nutrition', this)">Nutrition</div>
-      <div class="filter-chip" onclick="setFilter('Stress Management', this)">Stress Management</div>
+      <div class="filter-chip active" data-filter="all">All</div>
+      <div class="filter-chip" data-filter="Mental Health">Mental Health</div>
+      <div class="filter-chip" data-filter="Physical Wellness">Physical Wellness</div>
+      <div class="filter-chip" data-filter="Sleep">Sleep</div>
+      <div class="filter-chip" data-filter="Nutrition">Nutrition</div>
+      <div class="filter-chip" data-filter="Stress Management">Stress Management</div>
+      <div class="filter-chip" data-filter="Other">Other</div>
     </div>
 
-    <div class="articles-grid" id="articlesGrid"></div>
+    <div class="articles-grid" id="articlesGrid">
+      <div class="loading-state">Loading resources…</div>
+    </div>
   </div>
-
 </div>
 
 <script type="module">
   import { auth } from '/static/firebase_config.js';
-  import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  auth.onAuthStateChanged(user => {
-    if (!user) { window.location.href = '/login'; return; }
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    const token = await user.getIdToken();
+    await loadResources(token);
   });
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await signOut(auth);
-    window.location.href = '/login';
+    try { await signOut(auth); } catch (_) {}
+    window.location.replace('/login');
   });
 
   window.toggleQuickLog = function() {
     document.getElementById('quickLogItems').classList.toggle('open');
     document.getElementById('quickArrow').classList.toggle('open');
   };
-</script>
 
-<script>
-  const articles = [
-    { id:1, category:'Mental Health', catClass:'cat-mental', title:'Understanding Anxiety: What Every Student Should Know', desc:'Learn how to recognize signs of anxiety, what triggers it, and simple techniques to manage it during busy school days.', readTime:'5 min read', link:'#' },
-    { id:2, category:'Mental Health', catClass:'cat-mental', title:'Building Emotional Resilience as a Student', desc:'Practical strategies for bouncing back from academic stress, failed exams, and social pressures.', readTime:'6 min read', link:'#' },
-    { id:3, category:'Mental Health', catClass:'cat-mental', title:'When to Seek Help: A Guide to Mental Health Support', desc:'Understanding when it\'s time to talk to a counselor and how to take that first step without fear.', readTime:'4 min read', link:'#' },
-    { id:4, category:'Physical Wellness', catClass:'cat-physical', title:'Simple Exercises You Can Do at Your Desk', desc:'Stay active between classes with these quick, low-effort movements that boost energy and focus.', readTime:'4 min read', link:'#' },
-    { id:5, category:'Physical Wellness', catClass:'cat-physical', title:'The Importance of Daily Movement for Students', desc:'Why sitting all day hurts your health and easy ways to get moving even with a packed schedule.', readTime:'5 min read', link:'#' },
-    { id:6, category:'Physical Wellness', catClass:'cat-physical', title:'Staying Hydrated: More Than Just Drinking Water', desc:'How hydration affects your mood, memory, and academic performance — and how to drink enough daily.', readTime:'3 min read', link:'#' },
-    { id:7, category:'Sleep', catClass:'cat-sleep', title:'Why Sleep is Your Secret Academic Weapon', desc:'The science behind sleep and memory consolidation, and how getting enough rest improves your grades.', readTime:'5 min read', link:'#' },
-    { id:8, category:'Sleep', catClass:'cat-sleep', title:'How to Fix Your Sleep Schedule as a Student', desc:'Practical tips for resetting your body clock even if you\'ve been staying up late for weeks.', readTime:'4 min read', link:'#' },
-    { id:9, category:'Sleep', catClass:'cat-sleep', title:'The Effects of Screen Time on Sleep Quality', desc:'How phones and laptops before bed disrupt your sleep cycle and what to do instead.', readTime:'4 min read', link:'#' },
-    { id:10, category:'Nutrition', catClass:'cat-nutrition', title:'Eating Well on a Student Budget', desc:'Affordable, nutritious meal ideas that keep you energized without breaking the bank.', readTime:'6 min read', link:'#' },
-    { id:11, category:'Nutrition', catClass:'cat-nutrition', title:'Brain Foods: What to Eat Before an Exam', desc:'Foods that boost concentration and memory — and what to avoid before a big test.', readTime:'4 min read', link:'#' },
-    { id:12, category:'Nutrition', catClass:'cat-nutrition', title:'Skipping Meals: Why It Hurts More Than It Helps', desc:'The impact of missed meals on energy, focus, and mood — and how to eat consistently even when busy.', readTime:'3 min read', link:'#' },
-    { id:13, category:'Stress Management', catClass:'cat-stress', title:'5 Breathing Techniques to Calm Stress Instantly', desc:'Simple breathing exercises you can do anywhere — in class, before a presentation, or during an exam.', readTime:'3 min read', link:'#' },
-    { id:14, category:'Stress Management', catClass:'cat-stress', title:'Time Management Tips to Reduce Academic Stress', desc:'How planning your week reduces last-minute cramming and the anxiety that comes with it.', readTime:'5 min read', link:'#' },
-    { id:15, category:'Stress Management', catClass:'cat-stress', title:'Journaling for Stress Relief: A Beginner\'s Guide', desc:'How writing down your thoughts helps process emotions and reduce overwhelm during difficult times.', readTime:'4 min read', link:'#' },
-  ];
+  let _resources = [];
+  let _activeFilter = 'all';
 
-  let activeFilter = 'all';
+  async function loadResources(token) {
+    try {
+      const res  = await fetch('/api/resources', { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      _resources = data.resources || [];
+      render();
+    } catch (err) {
+      document.getElementById('articlesGrid').innerHTML =
+        `<div class="error-state">Could not load resources. Please try again later.</div>`;
+    }
+  }
 
-  function renderArticles() {
-    const query = document.getElementById('searchBar').value.toLowerCase();
-    const grid = document.getElementById('articlesGrid');
-    const filtered = articles.filter(a => {
-      const matchFilter = activeFilter === 'all' || a.category === activeFilter;
-      const matchSearch = a.title.toLowerCase().includes(query) || a.desc.toLowerCase().includes(query) || a.category.toLowerCase().includes(query);
+  function catClass(cat) {
+    const map = { 'Mental Health':'cat-mental', 'Physical Wellness':'cat-physical', 'Sleep':'cat-sleep', 'Nutrition':'cat-nutrition', 'Stress Management':'cat-stress' };
+    return map[cat] || 'cat-other';
+  }
+
+  window.render = function() {
+    const query    = document.getElementById('searchBar').value.toLowerCase();
+    const filtered = _resources.filter(r => {
+      const matchFilter = _activeFilter === 'all' || r.category === _activeFilter;
+      const matchSearch = !query || r.title.toLowerCase().includes(query) || r.description.toLowerCase().includes(query) || r.category.toLowerCase().includes(query);
       return matchFilter && matchSearch;
     });
 
+    const grid = document.getElementById('articlesGrid');
     if (filtered.length === 0) {
       grid.innerHTML = '<div class="no-results">No articles found. Try a different search or category.</div>';
       return;
     }
 
-    grid.innerHTML = filtered.map(a => `
+    grid.innerHTML = filtered.map(r => `
       <div class="article-card">
-        <span class="article-category ${a.catClass}">${a.category}</span>
-        <div class="article-title">${a.title}</div>
-        <div class="article-desc">${a.desc}</div>
+        <span class="article-category ${catClass(r.category)}">${esc(r.category)}</span>
+        <div class="article-title">${esc(r.title)}</div>
+        <div class="article-desc">${esc(r.description)}</div>
         <div class="article-footer">
-          <span class="article-read-time">${a.readTime}</span>
-          <a class="read-btn" href="${a.link}">Read more</a>
+          <span class="article-read-time">${esc(r.read_time || '')}</span>
+          ${r.link
+            ? `<a class="read-btn" href="${esc(r.link)}" target="_blank" rel="noopener">Read more</a>`
+            : `<span class="no-link">No link provided</span>`}
         </div>
       </div>
     `).join('');
-  }
-
-  window.setFilter = function(filter, el) {
-    activeFilter = filter;
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    renderArticles();
   };
 
-  window.filterArticles = renderArticles;
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      _activeFilter = chip.dataset.filter;
+      render();
+    });
+  });
 
-  renderArticles();
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 </script>
 </body>
 </html>

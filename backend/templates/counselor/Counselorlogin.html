@@ -3,103 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Counselor Login - GCSW</title>
+  <title>Counselor Login — GCSW</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --purple: #9c27b0; --purple-hover: #8e24aa; --blue-bar: #2979ff; --radius: 10px; }
-    html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: #fff; color: var(--text-primary); }
-    .wrapper { display: flex; height: 100vh; }
-    .left { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48px; gap: 24px; }
-    .logo-text p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; max-width: 360px; text-align: center; margin-top: 16px; }
-    .role-badge { display: inline-block; background: #f3e5f5; color: #6a1b9a; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
-    .right { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 20px; background: #f7f9fb; border-left: 1px solid var(--border); overflow-y: auto; }
-    .form-box { width: 100%; max-width: 360px; }
-    .form-box h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
-    .form-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
-    .input-group { margin-bottom: 14px; }
-    .input-group label { font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 6px; }
-    .input-group input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary); outline: none; transition: border-color 0.15s; }
-    .input-group input:focus { border-color: var(--purple); }
-    .password-wrap { position: relative; }
-    .toggle-pass { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 13px; color: var(--text-secondary); user-select: none; }
-    .login-btn { width: 100%; background: var(--purple); color: #fff; border: none; border-radius: var(--radius); padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; margin-top: 6px; }
-    .login-btn:hover { background: var(--purple-hover); }
-    .message { text-align: center; margin-top: 10px; font-size: 13px; min-height: 18px; opacity: 0; transition: opacity 0.3s; color: var(--purple); }
-    .message.show { opacity: 1; }
-    .message.error { color: #e53935; }
-    .link { display: block; text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-secondary); text-decoration: none; }
-    .link span { color: var(--purple); font-weight: 500; cursor: pointer; }
-    .link span:hover { text-decoration: underline; }
+    :root { --surface:#ffffff; --border:#e2e5ea; --text-primary:#1a1d23; --text-secondary:#5a6075; --purple:#7c3aed; --purple-hover:#6d28d9; --radius:10px; }
+    html, body { height:100%; font-family:'DM Sans',sans-serif; background:#fff; color:var(--text-primary); }
+    .wrapper { display:flex; height:100vh; }
+    .left { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:48px; gap:24px; }
+    .logo-text p { font-size:0.95rem; color:var(--text-secondary); line-height:1.7; max-width:360px; text-align:center; margin-top:16px; }
+    .role-badge { display:inline-block; background:#ede9fe; color:#5b21b6; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; margin-bottom:12px; }
+    .right { flex:1; display:flex; justify-content:center; align-items:center; padding:40px 20px; background:#f7f9fb; border-left:1px solid var(--border); overflow-y:auto; }
+    .form-box { width:100%; max-width:360px; }
+    .form-box h2 { font-size:22px; font-weight:600; margin-bottom:8px; }
+    .form-subtitle { font-size:13px; color:var(--text-secondary); margin-bottom:20px; }
+    .input-group { margin-bottom:14px; }
+    .input-group label { font-size:13px; color:var(--text-secondary); display:block; margin-bottom:6px; }
+    .input-group input { width:100%; border:1.5px solid var(--border); border-radius:var(--radius); padding:12px 16px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text-primary); outline:none; transition:border-color 0.15s; }
+    .input-group input:focus { border-color:var(--purple); }
+    .password-wrap { position:relative; }
+    .toggle-pass { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:13px; color:var(--text-secondary); user-select:none; }
+    .login-btn { width:100%; background:var(--purple); color:#fff; border:none; border-radius:var(--radius); padding:13px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:background 0.15s; margin-top:6px; }
+    .login-btn:hover:not(:disabled) { background:var(--purple-hover); }
+    .login-btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .message { text-align:center; margin-top:10px; font-size:13px; min-height:18px; color:var(--purple); }
+    .message.error { color:#e53935; }
+    .link { display:block; text-align:center; margin-top:14px; font-size:13px; color:var(--text-secondary); text-decoration:none; }
+    .link span { color:var(--purple); font-weight:500; cursor:pointer; }
+    .link span:hover { text-decoration:underline; }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <div class="left">
-      <svg width="160" height="160" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="100" cy="100" r="90" fill="none" stroke="#28a745" stroke-width="10"/>
-        <circle cx="100" cy="100" r="77" fill="none" stroke="#f5d600" stroke-width="8"/>
-        <text x="100" y="115" font-size="40" text-anchor="middle" fill="#1a1d23" font-family="DM Sans, sans-serif" font-weight="600">GCSW</text>
-      </svg>
-      <div class="logo-text">
-        <p>GCSW Health Counselor Portal. Manage student cases, view wellness data, track sessions, and provide personalized health guidance.</p>
-      </div>
-    </div>
-    <div class="right">
-      <div class="form-box">
-        <div class="role-badge">Counselor Portal</div>
-        <h2>Welcome Counselor</h2>
-        <p class="form-subtitle">Login to your counselor account</p>
-        
-        <div class="input-group">
-          <label>Email</label>
-          <input type="email" id="email" placeholder="Enter your email" />
-        </div>
-        <div class="input-group">
-          <label>Password</label>
-          <div class="password-wrap">
-            <input type="password" id="pass" placeholder="Enter your password" />
-            <span class="toggle-pass" id="togglePass">Show</span>
-          </div>
-        </div>
-        <button class="login-btn" id="loginBtn">Login</button>
-        <div class="message" id="msg"></div>
-        <a class="link">Don't have an account? <span onclick="window.location.href='/counselor/signup'">Sign up</span></a>
-      </div>
+<div class="wrapper">
+  <div class="left">
+    <svg width="160" height="160" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="90" fill="none" stroke="#7c3aed" stroke-width="10"/>
+      <circle cx="100" cy="100" r="77" fill="none" stroke="#f5d600" stroke-width="8"/>
+      <text x="100" y="115" font-size="40" text-anchor="middle" fill="#1a1d23" font-family="DM Sans, sans-serif" font-weight="600">GCSW</text>
+    </svg>
+    <div class="logo-text">
+      <p>GCSW Counselor Portal — manage student cases, view wellness data, track sessions, and provide personalised health guidance.</p>
     </div>
   </div>
+  <div class="right">
+    <div class="form-box">
+      <div class="role-badge">Counselor Portal</div>
+      <h2>Welcome Counselor</h2>
+      <p class="form-subtitle">Log in to your counselor account</p>
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Enter your email" autocomplete="email" />
+      </div>
+      <div class="input-group">
+        <label for="pass">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="pass" placeholder="Enter your password" autocomplete="current-password" />
+          <span class="toggle-pass" id="togglePass">Show</span>
+        </div>
+      </div>
+      <button class="login-btn" id="loginBtn">Log In</button>
+      <div class="message" id="msg"></div>
+      <a class="link">Don't have an account? <span onclick="window.location.href='/signup'">Sign up</span></a>
+    </div>
+  </div>
+</div>
 
-  <script type="module">
-    import { auth } from '/static/firebase_config.js';
-    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signInWithEmailAndPassword, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    // Toggle password visibility
-    document.getElementById('togglePass').addEventListener('click', () => {
-      const pass = document.getElementById('pass');
-      const toggle = document.getElementById('togglePass');
-      if (pass.type === 'password') { pass.type = 'text'; toggle.textContent = 'Hide'; }
-      else { pass.type = 'password'; toggle.textContent = 'Show'; }
-    });
+  // If already logged in, skip straight to dashboard
+  onAuthStateChanged(auth, user => {
+    if (user) window.location.replace('/dashboard');
+  });
 
-    document.getElementById('loginBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('pass').value;
-      if (!email || !password) { showMsg('Please fill in all fields.', true); return; }
+  // Toggle password visibility
+  document.getElementById('togglePass').addEventListener('click', () => {
+    const inp = document.getElementById('pass');
+    const btn = document.getElementById('togglePass');
+    const show = inp.type === 'password';
+    inp.type  = show ? 'text' : 'password';
+    btn.textContent = show ? 'Hide' : 'Show';
+  });
 
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.replace('/dashboard');
-      } catch (err) {
+  document.getElementById('loginBtn').addEventListener('click', handleLogin);
+  document.getElementById('pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  async function handleLogin() {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('pass').value;
+    const btn      = document.getElementById('loginBtn');
+
+    if (!email || !password) { showMsg('Please fill in all fields.', true); return; }
+
+    btn.textContent = 'Logging in…';
+    btn.disabled = true;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged will redirect
+    } catch (err) {
+      btn.textContent = 'Log In';
+      btn.disabled = false;
+      const code = err.code || '';
+      if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
         showMsg('Invalid email or password.', true);
+      } else if (code === 'auth/too-many-requests') {
+        showMsg('Too many attempts. Please try again later.', true);
+      } else {
+        showMsg('Login failed. Please try again.', true);
       }
-    });
-
-    function showMsg(text, isError) {
-      const msg = document.getElementById('msg');
-      msg.textContent = text;
-      msg.className = 'message show' + (isError ? ' error' : '');
-      setTimeout(() => msg.className = 'message', 3000);
     }
-  </script>
+  }
+
+  function showMsg(text, isError) {
+    const msg = document.getElementById('msg');
+    msg.textContent = text;
+    msg.className = 'message' + (isError ? ' error' : '');
+  }
+</script>
 </body>
 </html>

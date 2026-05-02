@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #28a745; --green-hover: #219a3c; --blue-bar: #2979ff; --radius: 10px; }
+  :root { --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --purple: #7c3aed; --purple-hover: #6d28d9; --radius: 10px; }
   html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: #fff; color: var(--text-primary); display: flex; flex-direction: column; }
   .wrapper { display: flex; flex: 1; height: 100vh; }
   .left { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48px; gap: 32px; background: #fff; animation: fadeUp 0.7s ease both; }
@@ -17,9 +17,9 @@
   .right { flex: 1; display: flex; justify-content: center; align-items: center; padding: 48px; background: #f7f9fb; border-left: 1px solid var(--border); animation: fadeUp 0.7s ease 0.15s both; }
   .cta-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 16px; }
   .cta-box p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; }
-  .btn { width: 100%; padding: 14px 20px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; text-align: center; text-decoration: none; display: block; }
-  .btn-primary { background: var(--green); color: #fff; border: none; }
-  .btn-primary:hover { background: var(--green-hover); }
+  .btn { width: 100%; padding: 14px 20px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; text-align: center; text-decoration: none; display: block; }
+  .btn-primary { background: var(--purple); color: #fff; border: none; }
+  .btn-primary:hover { background: var(--purple-hover); }
   .btn-outline { background: transparent; color: var(--text-primary); border: 1.5px solid var(--border); }
   .btn-outline:hover { background: #f0f2f5; }
   .divider { display: flex; align-items: center; gap: 12px; color: #bbb; font-size: 13px; }
@@ -32,23 +32,41 @@
   <div class="left">
     <div class="logo-wrap">
       <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="100" cy="100" r="90" fill="none" stroke="#28a745" stroke-width="10"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#7c3aed" stroke-width="10"/>
         <circle cx="100" cy="100" r="77" fill="none" stroke="#f5d600" stroke-width="8"/>
         <text x="100" y="115" font-size="40" text-anchor="middle" fill="#1a1d23" font-family="DM Sans, sans-serif" font-weight="600">GCSW</text>
       </svg>
       <div class="logo-text">
-        <p>GCSW is a web-based wellness monitoring application that enables users to track key health indicators including mood, sleep quality, hydration, stress levels, and physical activity through an intuitive and accessible dashboard.</p>
+        <p>GCSW is a web-based wellness monitoring application that enables counselors to track student health indicators, manage sessions, and provide personalized guidance.</p>
       </div>
     </div>
   </div>
   <div class="right">
     <div class="cta-box">
-      <p>Join GCSW and take the first step toward building healthier, more consistent daily habits.</p>
-      <a href="/signup" class="btn btn-primary">Create an account</a>
+      <p>Join GCSW and start supporting student wellness today.</p>
+      <a href="/signup" class="btn btn-primary">Create a Counselor Account</a>
       <div class="divider">already have an account?</div>
       <a href="/login" class="btn btn-outline">Log in</a>
     </div>
   </div>
 </div>
+
+<script type="module">
+  // The landing page is always publicly accessible.
+  // If a previous session is still active, sign the user out silently
+  // so they are not auto-redirected away from this page.
+  import { auth } from '/static/firebase_config.js';
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      // User arrived at the landing page while still logged in.
+      // Sign them out quietly — they chose to visit the landing page,
+      // so respect that intent instead of bouncing them to /dashboard.
+      try { await signOut(auth); } catch (_) {}
+    }
+  });
+</script>
 </body>
 </html>

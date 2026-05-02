@@ -23,8 +23,8 @@
   .quick-log-items { display: none; flex-direction: column; }
   .quick-log-items.open { display: flex; }
   .quick-log-items .nav-item { padding: 9px 24px 9px 36px; font-size: 13px; }
-  .sidebar-middle { flex: 1; overflow-y: auto; }
-  .sidebar-bottom { border-top: 1px solid rgba(255,255,255,0.2); padding: 8px 0 24px; flex-shrink: 0; }
+  .sidebar-scroll { flex: 1; overflow-y: auto; }
+  .sidebar-bottom { flex-shrink:0; border-top: 1px solid rgba(255,255,255,0.2); padding: 8px 0 48px; }
   .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
   .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
   .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -51,7 +51,7 @@
   <aside class="sidebar">
     <div class="sidebar-logo"><span>Student Portal</span></div>
 
-    <div class="sidebar-middle">
+    <div class="sidebar-scroll">
       <a class="nav-item" href="/dashboard">Dashboard</a>
       <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
       <a class="nav-item" href="/resource-library">Resource Library</a>

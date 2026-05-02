@@ -6,131 +6,249 @@
 <title>Case Notes — Counselor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg: #f5f0ff; --surface: #ffffff; --border: #e2d9f3; --text-primary: #1a1d23; --text-secondary: #5a6075; --purple: #7c3aed; --purple-hover: #6d28d9; --purple-light: #ede9fe; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 240px; }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--purple); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
-  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
-  .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
-  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
-  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
-  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
-  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
-  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 780px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.12; pointer-events: none; z-index: 0; }
-  .watermark svg { width: 220px; height: 220px; }
-  .card-content { position: relative; z-index: 1; }
-  .purple-btn { background: var(--purple); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-block; }
-  .purple-btn:hover { background: var(--purple-hover); }
-  .outline-btn { background: transparent; color: var(--purple); border: 1.5px solid var(--purple); border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .outline-btn:hover { background: var(--purple-light); }
-  .danger-btn { background: #dc2626; color: #fff; border: none; border-radius: var(--radius); padding: 7px 16px; font-family: 'DM Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .danger-btn:hover { background: #b91c1c; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-  .badge.risk { background: #fee2e2; color: #dc2626; }
-  .badge.ok { background: #dcfce7; color: #16a34a; }
-  .badge.moderate { background: #fef9c3; color: #ca8a04; }
-  .badge.pending { background: #fef9c3; color: #ca8a04; }
-  .badge.approved { background: #dcfce7; color: #16a34a; }
-  .badge.declined { background: #fee2e2; color: #dc2626; }
-  .badge.active-session { background: var(--purple-light); color: var(--purple); }
-  .main-full { margin-left: var(--sidebar-width); flex: 1; padding: 32px; }
-  .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
-  .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
-  .notes-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; }
-  .student-list-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
-  .panel-header { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600; color: var(--text-primary); }
-  .student-entry { padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
-  .student-entry:hover { background: var(--purple-light); }
-  .student-entry.active { background: var(--purple-light); border-left: 3px solid var(--purple); }
-  .student-entry:last-child { border-bottom: none; }
-  .se-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-  .se-count { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-  .notes-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
-  .notes-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .notes-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
-  .notes-list { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; }
-  .note-card { background: var(--purple-light); border-radius: 10px; padding: 14px 16px; }
-  .note-date { font-size: 11px; color: var(--purple); font-weight: 600; margin-bottom: 6px; }
-  .note-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; }
-  .note-followup { font-size: 12px; color: var(--text-secondary); margin-top: 6px; font-style: italic; }
-  .add-note { padding: 16px 20px; border-top: 1px solid var(--border); }
-  .add-label { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
-  .note-textarea { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-family: 'DM Sans',sans-serif; font-size: 14px; color: var(--text-primary); resize: none; outline: none; height: 80px; transition: border-color 0.15s; margin-bottom: 8px; box-sizing: border-box; }
-  .note-textarea:focus { border-color: var(--purple); }
-  .note-textarea::placeholder { color: #bbb; }
-  .followup-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 9px 14px; font-family: 'DM Sans',sans-serif; font-size: 13px; color: var(--text-primary); outline: none; margin-bottom: 10px; transition: border-color 0.15s; box-sizing: border-box; }
-  .followup-input:focus { border-color: var(--purple); }
-  .followup-input::placeholder { color: #bbb; }
+  :root { --bg:#f5f0ff; --surface:#ffffff; --border:#e2d9f3; --text-primary:#1a1d23; --text-secondary:#5a6075; --purple:#7c3aed; --purple-hover:#6d28d9; --purple-light:#ede9fe; --radius:10px; --shadow:0 1px 4px rgba(0,0,0,0.07); --sidebar-width:240px; }
+  html, body { height:100%; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width:var(--sidebar-width); background:var(--purple); display:flex; flex-direction:column; padding:32px 0 0; position:fixed; top:0; left:0; height:100vh; z-index:10; }
+  .sidebar-logo { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 20px 24px; border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:12px; flex-shrink:0; }
+  .sidebar-logo span { font-size:15px; font-weight:600; color:#fff; letter-spacing:0.04em; }
+  .sidebar-logo small { font-size:12px; color:rgba(255,255,255,0.6); }
+  .sidebar-main { flex:1; overflow:hidden; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:11px 24px; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); text-decoration:none; transition:background 0.15s,color 0.15s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,0.15); color:#fff; }
+  .nav-item.active { background:rgba(255,255,255,0.2); color:#fff; border-left-color:#fff; }
+  .nav-section-label { font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; padding:14px 24px 5px; }
+  .sidebar-bottom { flex-shrink:0; border-top:1px solid rgba(255,255,255,0.2); padding:8px 0 48px; }
+  .logout-btn { display:flex; align-items:center; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); cursor:pointer; background:none; border:none; padding:11px 24px; transition:color 0.15s,background 0.15s; width:100%; font-family:'DM Sans',sans-serif; border-left:3px solid transparent; }
+  .logout-btn:hover { color:#fff; background:rgba(255,255,255,0.15); }
+  .main-full { margin-left:var(--sidebar-width); flex:1; padding:32px; }
+  .page-title { font-size:22px; font-weight:600; margin-bottom:6px; }
+  .page-subtitle { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
+  .notes-layout { display:grid; grid-template-columns:260px 1fr; gap:20px; }
+  .student-list-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
+  .panel-header { padding:14px 18px; border-bottom:1px solid var(--border); font-size:14px; font-weight:600; }
+  .student-entry { padding:12px 18px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; }
+  .student-entry:hover { background:var(--purple-light); }
+  .student-entry.active { background:var(--purple-light); border-left:3px solid var(--purple); }
+  .se-name { font-size:14px; font-weight:600; }
+  .se-count { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .notes-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+  .notes-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .notes-title { font-size:15px; font-weight:600; }
+  .notes-list { padding:16px 20px; display:flex; flex-direction:column; gap:12px; max-height:350px; overflow-y:auto; }
+  .note-card { background:var(--purple-light); border-radius:10px; padding:14px 16px; }
+  .note-date { font-size:11px; color:var(--purple); font-weight:600; margin-bottom:6px; }
+  .note-text { font-size:14px; line-height:1.6; }
+  .note-followup { font-size:12px; color:var(--text-secondary); margin-top:6px; font-style:italic; }
+  .add-note { padding:16px 20px; border-top:1px solid var(--border); }
+  .add-label { font-size:13px; font-weight:600; margin-bottom:8px; }
+  .note-textarea { width:100%; border:1.5px solid var(--border); border-radius:var(--radius); padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:14px; resize:none; outline:none; height:80px; transition:border-color 0.15s; margin-bottom:8px; box-sizing:border-box; }
+  .note-textarea:focus { border-color:var(--purple); }
+  .note-textarea::placeholder { color:#bbb; }
+  .followup-input { width:100%; border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 14px; font-family:'DM Sans',sans-serif; font-size:13px; outline:none; margin-bottom:10px; transition:border-color 0.15s; box-sizing:border-box; }
+  .followup-input:focus { border-color:var(--purple); }
+  .followup-input::placeholder { color:#bbb; }
+  .purple-btn { background:var(--purple); color:#fff; border:none; border-radius:var(--radius); padding:10px 18px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:background 0.15s; width:100%; }
+  .purple-btn:hover:not(:disabled) { background:var(--purple-hover); }
+  .purple-btn:disabled { opacity:0.6; cursor:not-allowed; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; background:var(--purple-light); color:var(--purple); }
+  .empty-state { color:#bbb; font-size:14px; padding:20px; text-align:center; }
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span>GCSW</span>
-      <small>Counselor Portal</small>
+    <div class="sidebar-logo"><span>GCSW</span><small>Counselor Portal</small></div>
+    <div class="sidebar-main">
+      <a class="nav-item" href="/dashboard">Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" href="/students">Student Monitoring</a>
+      <a class="nav-item" href="/requests">Counseling Requests</a>
+      <a class="nav-item" href="/sessions">Active Sessions</a>
+      <a class="nav-item active" href="/case-notes">Case Notes</a>
+      <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
+      <a class="nav-item" href="/resources">Resource Library</a>
     </div>
-    <a class="nav-item" href="/dashboard">Dashboard</a>
-    <div class="nav-section-label">Management</div>
-    <a class="nav-item" href="/students">Student Monitoring</a>
-    <a class="nav-item" href="/requests">Counseling Requests</a>
-    <a class="nav-item" href="/sessions">Active Sessions</a>
-    <a class="nav-item" href="/case-notes">Case Notes</a>
-    <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
     <div class="sidebar-bottom">
       <a class="nav-item" href="/about">About Us</a>
       <a class="nav-item" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
+
   <div class="main-full">
     <div class="page-title">Case Notes</div>
     <div class="page-subtitle">Record interactions, advice, and follow-ups per student</div>
     <div class="notes-layout">
+
+      <!-- Student list -->
       <div class="student-list-panel">
         <div class="panel-header">Students</div>
-        <div class="student-entry active" onclick="selectStudent(this,'Juan Dela Cruz')"><div class="se-name">Juan Dela Cruz</div><div class="se-count">2 notes</div></div>
-        <div class="student-entry" onclick="selectStudent(this,'Maria Santos')"><div class="se-name">Maria Santos</div><div class="se-count">1 note</div></div>
-        <div class="student-entry" onclick="selectStudent(this,'Ana Gonzales')"><div class="se-name">Ana Gonzales</div><div class="se-count">No notes yet</div></div>
-        <div class="student-entry"><div class="se-name" style="color:#bbb;">+ More from Firebase</div></div>
+        <div id="studentList"><div class="empty-state">Loading…</div></div>
       </div>
+
+      <!-- Notes panel -->
       <div class="notes-panel">
-        <div class="notes-header"><div class="notes-title" id="notesTitle">Juan Dela Cruz — Case Notes</div><span class="badge ok">2 notes</span></div>
-        <div class="notes-list" id="notesList">
-          <div class="note-card"><div class="note-date">April 20, 2026 · 10:00 AM</div><div class="note-text">Student expressed high stress levels related to upcoming exams. Discussed time management strategies and breathing exercises.</div><div class="note-followup">Follow-up: Check in next week on exam results and stress levels.</div></div>
-          <div class="note-card"><div class="note-date">April 15, 2026 · 2:30 PM</div><div class="note-text">Initial consultation. Student reported difficulty sleeping and lack of motivation. Recommended journaling and regular sleep schedule.</div><div class="note-followup">Follow-up: Monitor sleep tracker data over the next 5 days.</div></div>
+        <div class="notes-header">
+          <div class="notes-title" id="notesTitle">Select a student</div>
+          <span class="badge" id="notesBadge">0 notes</span>
         </div>
-        <div class="add-note">
+        <div class="notes-list" id="notesList">
+          <div class="empty-state">Select a student to view their notes.</div>
+        </div>
+        <div class="add-note" id="addNoteSection" style="display:none;">
           <div class="add-label">Add new note</div>
-          <textarea class="note-textarea" id="noteText" placeholder="Write your notes here..."></textarea>
-          <input class="followup-input" id="followupText" type="text" placeholder="Follow-up action (optional)..." />
-          <button class="purple-btn" onclick="saveNote()" style="width:100%;">Save Note</button>
+          <textarea class="note-textarea" id="noteText" placeholder="Write your notes here…"></textarea>
+          <input class="followup-input" id="followupText" type="text" placeholder="Follow-up action (optional)…" />
+          <button class="purple-btn" id="saveNoteBtn" onclick="saveNote()">Save Note</button>
         </div>
       </div>
+
     </div>
   </div>
 </div>
-<script type="module">
-  window.selectStudent = function(el,name) { document.querySelectorAll('.student-entry').forEach(e=>e.classList.remove('active')); el.classList.add('active'); document.getElementById('notesTitle').textContent=name+' — Case Notes'; document.getElementById('notesList').innerHTML='<div style="color:#bbb;font-size:14px;padding:10px;">— Notes will load from Firebase —</div>'; };
-  window.saveNote = function() { const text=document.getElementById('noteText').value.trim(); const followup=document.getElementById('followupText').value.trim(); if(!text){alert('Please write a note.');return;} const list=document.getElementById('notesList'); const now=new Date(); const card=document.createElement('div'); card.className='note-card'; card.innerHTML='<div class="note-date">'+now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</div><div class="note-text">'+text+'</div>'+(followup?'<div class="note-followup">Follow-up: '+followup+'</div>':''); list.insertBefore(card,list.firstChild); document.getElementById('noteText').value=''; document.getElementById('followupText').value=''; };
 
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // Active nav
   document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
+    item.classList.toggle('active', item.getAttribute('href') === window.location.pathname);
   });
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js");
-      await signOut(auth);
-    } catch(e) {}
+
+  // Logout
+  async function logout() {
+    try { await signOut(auth); } catch (_) {}
     window.location.replace('/login');
+  }
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+
+  let _token = '';
+  let _selectedUid = '';
+  let _students = [];
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    _token = await user.getIdToken();
+    await loadStudents();
   });
+
+  async function loadStudents() {
+    try {
+      const res  = await fetch('/api/students', { headers: { Authorization: `Bearer ${_token}` } });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      _students = data.students || [];
+      renderStudentList();
+    } catch (err) {
+      document.getElementById('studentList').innerHTML =
+        `<div class="empty-state">Failed to load students. ${err.message}</div>`;
+    }
+  }
+
+  function renderStudentList() {
+    const list = document.getElementById('studentList');
+    if (_students.length === 0) {
+      list.innerHTML = '<div class="empty-state">No students assigned.</div>';
+      return;
+    }
+    list.innerHTML = _students.map(s => `
+      <div class="student-entry" id="se-${esc(s.uid)}" onclick="selectStudent('${esc(s.uid)}', '${esc(s.name || s.uid)}')">
+        <div class="se-name">${esc(s.name || s.email || '—')}</div>
+        <div class="se-count" id="secount-${esc(s.uid)}">—</div>
+      </div>
+    `).join('');
+  }
+
+  window.selectStudent = async function(uid, name) {
+    _selectedUid = uid;
+
+    document.querySelectorAll('.student-entry').forEach(e => e.classList.remove('active'));
+    const el = document.getElementById(`se-${uid}`);
+    if (el) el.classList.add('active');
+
+    document.getElementById('notesTitle').textContent = `${name} — Case Notes`;
+    document.getElementById('addNoteSection').style.display = 'block';
+    document.getElementById('notesList').innerHTML = '<div class="empty-state">Loading notes…</div>';
+
+    await loadNotes(uid);
+  };
+
+  async function loadNotes(uid) {
+    try {
+      const res  = await fetch(`/api/case-notes/${uid}`, {
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      const notes = data.notes || [];
+      const badge = document.getElementById('notesBadge');
+      badge.textContent = `${notes.length} note${notes.length !== 1 ? 's' : ''}`;
+
+      // Update count in student list
+      const countEl = document.getElementById(`secount-${uid}`);
+      if (countEl) countEl.textContent = notes.length === 0 ? 'No notes yet' : `${notes.length} note${notes.length !== 1 ? 's' : ''}`;
+
+      const list = document.getElementById('notesList');
+      if (notes.length === 0) {
+        list.innerHTML = '<div class="empty-state">No notes yet. Add the first note below.</div>';
+        return;
+      }
+      list.innerHTML = notes.map(n => `
+        <div class="note-card">
+          <div class="note-date">${formatDate(n.created_at)}</div>
+          <div class="note-text">${esc(n.note)}</div>
+          ${n.followup ? `<div class="note-followup">Follow-up: ${esc(n.followup)}</div>` : ''}
+        </div>
+      `).join('');
+    } catch (err) {
+      document.getElementById('notesList').innerHTML =
+        `<div class="empty-state">Failed to load notes. ${err.message}</div>`;
+    }
+  }
+
+  window.saveNote = async function() {
+    if (!_selectedUid) { alert('Please select a student first.'); return; }
+    const text    = document.getElementById('noteText').value.trim();
+    const followup = document.getElementById('followupText').value.trim();
+    if (!text) { alert('Please write a note.'); return; }
+
+    const btn = document.getElementById('saveNoteBtn');
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/case-note', {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ student_uid: _selectedUid, note: text, followup }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      document.getElementById('noteText').value    = '';
+      document.getElementById('followupText').value = '';
+      await loadNotes(_selectedUid);
+    } catch (err) {
+      alert(`Failed to save note: ${err.message}`);
+    } finally {
+      btn.textContent = 'Save Note';
+      btn.disabled = false;
+    }
+  };
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-PH', {
+      month:'long', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit',
+    });
+  }
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 </script>
 </body>
 </html>

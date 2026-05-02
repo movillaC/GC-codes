@@ -3,46 +3,57 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>About — Admin</title>
+<title>Contacts — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg: #fff5f5; --surface: #ffffff; --border: #fecaca; --text-primary: #1a1d23; --text-secondary: #5a6075; --accent: #dc2626; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 240px; }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea;
+    --text-primary: #1a1d23; --text-secondary: #5a6075;
+    --red: #dc2626; --red-hover: #b91c1c; --red-light: #fee2e2;
+    --radius: 12px; --shadow: 0 1px 4px rgba(0,0,0,0.07);
+    --sidebar-width: 240px;
+  }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); }
   .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--accent); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
+  /* SIDEBAR */
+  .sidebar { width: var(--sidebar-width); background: var(--red); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; }
   .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
   .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
   .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
   .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
-  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
+  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 16px 24px 6px; }
   .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
-  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
+  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 12px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
   .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
   .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 700px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.12; pointer-events: none; z-index: 0; }
+  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.1; pointer-events: none; z-index: 0; }
   .watermark svg { width: 220px; height: 220px; }
   .card-content { position: relative; z-index: 1; }
   .card-header { display: flex; justify-content: flex-end; margin-bottom: 24px; }
-  .go-back { font-size: 14px; color: var(--text-secondary); text-decoration: none; transition: color 0.15s; cursor: pointer; }
+  .go-back { font-size: 14px; color: var(--text-secondary); text-decoration: none; transition: color 0.15s; }
   .go-back:hover { color: var(--text-primary); }
-  .section-title{font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:14px;}
-  .section-subtitle{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px;margin-top:18px;}
-  .section-text{font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:6px;}
-  .skill-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
-  .skill-item{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--text-secondary);line-height:1.6;}
-  .skill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px;}
-  .skill-item strong{color:var(--text-primary);}
-  .thank-you{margin-top:20px;font-size:14px;color:var(--text-secondary);font-style:italic;}
-  .skill-dot { background: #dc2626; }
+  .section-title { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; }
+  .section-subtitle { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; margin-top: 18px; }
+  .section-text { font-size: 14px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 6px; }
+  .contact-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .contact-row:last-child { border-bottom: none; }
+  .contact-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--red-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .contact-icon svg { width: 18px; height: 18px; stroke: var(--red); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .contact-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .contact-value { font-size: 14px; color: var(--text-primary); font-weight: 500; }
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-logo"><span>GCSW</span><small>Admin Portal</small></div>
+    <div class="sidebar-logo">
+      <span>GCSW</span>
+      <small>Admin Portal</small>
+    </div>
     <a class="nav-item" href="/dashboard">Dashboard</a>
     <div class="nav-section-label">Management</div>
     <a class="nav-item" href="/users">User Management</a>
@@ -50,8 +61,8 @@
     <a class="nav-item" href="/system-config">System Config</a>
     <a class="nav-item" href="/backup">Data Backup</a>
     <div class="sidebar-bottom">
-      <a class="nav-item active" href="/about">About Us</a>
-      <a class="nav-item" href="/contacts">Contacts</a>
+      <a class="nav-item " href="/about">About Us</a>
+      <a class="nav-item active" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
@@ -60,34 +71,39 @@
       <div class="watermark"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="95" fill="none" stroke="#dc2626" stroke-width="12"/><circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/><text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text></svg></div>
       <div class="card-content">
         <div class="card-header"><a class="go-back" href="/dashboard">Go back &gt;</a></div>
-        <div class="section-title">About This Project</div>
-        <p class="section-text">This app is a personal project I built to practice my skills as an IT student. My goal was to take what I've learned in the classroom and apply it to a real, working application.</p>
-        <div class="section-subtitle">Why I Built This</div>
-        <p class="section-text">From the initial logic and database structure to the final visual look, it is a way for me to bridge the gap between technical coding and clean design.</p>
-        <div class="section-subtitle">My Goal</div>
-        <p class="section-text">Since I am still building my skills, this project is all about learning. It represents my progress in:</p>
-        <div class="skill-list">
-          <div class="skill-item"><div class="skill-dot"></div><span><strong>Development:</strong> Writing clean, functional code.</span></div>
-          <div class="skill-item"><div class="skill-dot"></div><span><strong>Design:</strong> Creating a simple and clear user interface.</span></div>
-          <div class="skill-item"><div class="skill-dot"></div><span><strong>Problem Solving:</strong> Figuring out how to turn an idea into a digital tool.</span></div>
+        <div class="section-title">Contacts</div>
+        <p class="section-text">Reach out through any of the channels below for support or inquiries.</p>
+        <div class="contact-row">
+          <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="contact-label">Email</div><div class="contact-value">support@gordoncollege.edu.ph</div></div>
         </div>
-        <p class="thank-you">Thank you for checking out my work!</p>
+        <div class="contact-row">
+          <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <div><div class="contact-label">Office</div><div class="contact-value">Gordon College Student Welfare — Main Campus, Olongapo City</div></div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="contact-label">Office Hours</div><div class="contact-value">Monday – Friday, 8:00 AM – 5:00 PM</div></div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 <script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) { window.location.replace('/login'); return; }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.replace('/login');
+  });
 
   document.querySelectorAll('.nav-item').forEach(item => {
     if (item.getAttribute('href') === window.location.pathname) item.classList.add('active');
-  });
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-      const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js");
-      await signOut(auth);
-    } catch(e) {}
-    window.location.replace('/login');
   });
 </script>
 </body>

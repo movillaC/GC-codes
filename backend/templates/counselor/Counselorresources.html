@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resource Library — Counselor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#f5f0ff; --surface:#ffffff; --border:#e2d9f3; --text-primary:#1a1d23; --text-secondary:#5a6075; --purple:#7c3aed; --purple-hover:#6d28d9; --purple-light:#ede9fe; --radius:10px; --shadow:0 1px 4px rgba(0,0,0,0.07); --sidebar-width:240px; }
+  html, body { height:100%; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width:var(--sidebar-width); background:var(--purple); display:flex; flex-direction:column; padding:32px 0 0; position:fixed; top:0; left:0; height:100vh; z-index:10; }
+  .sidebar-logo { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 20px 24px; border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:12px; flex-shrink:0; }
+  .sidebar-logo span { font-size:15px; font-weight:600; color:#fff; letter-spacing:0.04em; }
+  .sidebar-logo small { font-size:12px; color:rgba(255,255,255,0.6); }
+  .sidebar-main { flex:1; overflow:hidden; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:11px 24px; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); text-decoration:none; transition:background 0.15s,color 0.15s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,0.15); color:#fff; }
+  .nav-item.active { background:rgba(255,255,255,0.2); color:#fff; border-left-color:#fff; }
+  .nav-section-label { font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; padding:14px 24px 5px; }
+  .sidebar-bottom { flex-shrink:0; border-top:1px solid rgba(255,255,255,0.2); padding:8px 0 48px; }
+  .logout-btn { display:flex; align-items:center; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); cursor:pointer; background:none; border:none; padding:11px 24px; transition:color 0.15s,background 0.15s; width:100%; font-family:'DM Sans',sans-serif; border-left:3px solid transparent; }
+  .logout-btn:hover { color:#fff; background:rgba(255,255,255,0.15); }
+
+  .main-full { margin-left:var(--sidebar-width); flex:1; padding:32px; }
+  .page-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; }
+  .page-title { font-size:22px; font-weight:600; margin-bottom:4px; }
+  .page-subtitle { font-size:14px; color:var(--text-secondary); }
+  .purple-btn { background:var(--purple); color:#fff; border:none; border-radius:var(--radius); padding:10px 20px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+  .purple-btn:hover { background:var(--purple-hover); }
+
+  /* TOOLBAR */
+  .toolbar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .search-input { flex:1; min-width:200px; border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 14px; font-family:'DM Sans',sans-serif; font-size:14px; outline:none; background:var(--surface); transition:border-color 0.15s; }
+  .search-input:focus { border-color:var(--purple); }
+  .search-input::placeholder { color:#bbb; }
+  .filter-chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .filter-chip { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface); font-size:13px; font-weight:500; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .filter-chip:hover { border-color:var(--purple); color:var(--purple); }
+  .filter-chip.active { background:var(--purple); border-color:var(--purple); color:#fff; }
+
+  /* GRID */
+  .resources-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .resource-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px; }
+  .rc-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .rc-category { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .cat-mental    { background:#ede9fe; color:#7c3aed; }
+  .cat-physical  { background:#dcfce7; color:#16a34a; }
+  .cat-sleep     { background:#dbeafe; color:#1d4ed8; }
+  .cat-nutrition { background:#fef9c3; color:#ca8a04; }
+  .cat-stress    { background:#fee2e2; color:#dc2626; }
+  .cat-other     { background:#f3f4f6; color:#374151; }
+  .rc-actions { display:flex; gap:6px; flex-shrink:0; }
+  .icon-btn { background:none; border:1.5px solid var(--border); border-radius:8px; padding:5px 8px; cursor:pointer; font-size:13px; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
+  .icon-btn:hover { border-color:var(--purple); color:var(--purple); }
+  .icon-btn.danger:hover { border-color:#dc2626; color:#dc2626; }
+  .rc-title { font-size:15px; font-weight:600; color:var(--text-primary); line-height:1.4; }
+  .rc-desc { font-size:13px; color:var(--text-secondary); line-height:1.6; flex:1; }
+  .rc-footer { display:flex; justify-content:space-between; align-items:center; margin-top:4px; }
+  .rc-meta { font-size:12px; color:#bbb; }
+  .rc-link { font-size:12px; color:var(--purple); text-decoration:none; font-weight:500; word-break:break-all; }
+  .rc-link:hover { text-decoration:underline; }
+  .empty-state { text-align:center; color:#bbb; font-size:14px; padding:48px; grid-column:1/-1; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; display:none; align-items:center; justify-content:center; padding:24px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border-radius:16px; padding:32px; width:100%; max-width:520px; box-shadow:0 8px 32px rgba(0,0,0,0.15); }
+  .modal-title { font-size:18px; font-weight:600; margin-bottom:20px; }
+  .form-group { margin-bottom:16px; }
+  .form-label { font-size:13px; color:var(--text-secondary); display:block; margin-bottom:6px; font-weight:500; }
+  .form-input, .form-select, .form-textarea { width:100%; border:1.5px solid var(--border); border-radius:var(--radius); padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text-primary); outline:none; transition:border-color 0.15s; box-sizing:border-box; background:var(--surface); }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--purple); }
+  .form-textarea { resize:vertical; height:80px; }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  .outline-btn { background:transparent; color:var(--text-secondary); border:1.5px solid var(--border); border-radius:var(--radius); padding:10px 20px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.15s; }
+  .outline-btn:hover { border-color:var(--purple); color:var(--purple); }
+  .err-msg { font-size:12px; color:#dc2626; margin-top:6px; display:none; }
+
+  /* LOADING */
+  .loading-state { text-align:center; color:#bbb; font-size:14px; padding:48px; grid-column:1/-1; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>GCSW</span><small>Counselor Portal</small></div>
+    <div class="sidebar-main">
+      <a class="nav-item" href="/dashboard">Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" href="/students">Student Monitoring</a>
+      <a class="nav-item" href="/requests">Counseling Requests</a>
+      <a class="nav-item" href="/sessions">Active Sessions</a>
+      <a class="nav-item" href="/case-notes">Case Notes</a>
+      <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
+      <a class="nav-item active" href="/resources">Resource Library</a>
+    </div>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/about">About Us</a>
+      <a class="nav-item" href="/contacts">Contacts</a>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </aside>
+
+  <div class="main-full">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Resource Library</div>
+        <div class="page-subtitle">Manage articles and resources visible to students</div>
+      </div>
+      <button class="purple-btn" onclick="openModal()">+ Add Resource</button>
+    </div>
+
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="Search resources…" />
+      <div class="filter-chips">
+        <div class="filter-chip active" data-filter="all">All</div>
+        <div class="filter-chip" data-filter="Mental Health">Mental Health</div>
+        <div class="filter-chip" data-filter="Physical Wellness">Physical Wellness</div>
+        <div class="filter-chip" data-filter="Sleep">Sleep</div>
+        <div class="filter-chip" data-filter="Nutrition">Nutrition</div>
+        <div class="filter-chip" data-filter="Stress Management">Stress Management</div>
+        <div class="filter-chip" data-filter="Other">Other</div>
+      </div>
+    </div>
+
+    <div class="resources-grid" id="resourcesGrid">
+      <div class="loading-state">Loading resources…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Add Resource</div>
+    <div class="form-group">
+      <label class="form-label">Title *</label>
+      <input class="form-input" id="fTitle" type="text" placeholder="e.g. Understanding Anxiety" maxlength="120" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category *</label>
+      <select class="form-select" id="fCategory">
+        <option value="">Select a category</option>
+        <option>Mental Health</option>
+        <option>Physical Wellness</option>
+        <option>Sleep</option>
+        <option>Nutrition</option>
+        <option>Stress Management</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description *</label>
+      <textarea class="form-textarea" id="fDesc" placeholder="Brief summary of the resource…" maxlength="300"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Link (URL)</label>
+      <input class="form-input" id="fLink" type="url" placeholder="https://example.com/article" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Read Time</label>
+      <input class="form-input" id="fReadTime" type="text" placeholder="e.g. 5 min read" maxlength="20" />
+    </div>
+    <div class="err-msg" id="formErr">Please fill in all required fields.</div>
+    <div class="modal-actions">
+      <button class="outline-btn" onclick="closeModal()">Cancel</button>
+      <button class="purple-btn" id="saveBtn" onclick="saveResource()">Save Resource</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth } from '/static/firebase_config.js';
+  import { signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.getAttribute('href') === window.location.pathname);
+  });
+
+  async function logout() {
+    try { await signOut(auth); } catch (_) {}
+    window.location.replace('/login');
+  }
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+
+  let _token = '';
+  let _resources = [];
+  let _editingId = null;
+  let _currentFilter = 'all';
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.replace('/login'); return; }
+    _token = await user.getIdToken();
+    await loadResources();
+  });
+
+  // ── LOAD ──────────────────────────────────────────────
+  async function loadResources() {
+    try {
+      const res  = await fetch('/api/resources', { headers: { Authorization: `Bearer ${_token}` } });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      _resources = data.resources || [];
+      render();
+    } catch (err) {
+      document.getElementById('resourcesGrid').innerHTML =
+        `<div class="empty-state">Failed to load resources. ${err.message}</div>`;
+    }
+  }
+
+  // ── RENDER ─────────────────────────────────────────────
+  function catClass(cat) {
+    const map = { 'Mental Health':'cat-mental', 'Physical Wellness':'cat-physical', 'Sleep':'cat-sleep', 'Nutrition':'cat-nutrition', 'Stress Management':'cat-stress' };
+    return map[cat] || 'cat-other';
+  }
+
+  function render() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = _resources.filter(r => {
+      const matchFilter = _currentFilter === 'all' || r.category === _currentFilter;
+      const matchSearch = !search || r.title.toLowerCase().includes(search) || r.description.toLowerCase().includes(search) || r.category.toLowerCase().includes(search);
+      return matchFilter && matchSearch;
+    });
+
+    const grid = document.getElementById('resourcesGrid');
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No resources found.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(r => `
+      <div class="resource-card">
+        <div class="rc-top">
+          <span class="rc-category ${catClass(r.category)}">${esc(r.category)}</span>
+          <div class="rc-actions">
+            <button class="icon-btn" onclick="editResource('${esc(r.id)}')">✏️ Edit</button>
+            <button class="icon-btn danger" onclick="deleteResource('${esc(r.id)}', '${esc(r.title)}')">🗑 Delete</button>
+          </div>
+        </div>
+        <div class="rc-title">${esc(r.title)}</div>
+        <div class="rc-desc">${esc(r.description)}</div>
+        <div class="rc-footer">
+          <span class="rc-meta">${esc(r.read_time || '')}</span>
+          ${r.link ? `<a class="rc-link" href="${esc(r.link)}" target="_blank" rel="noopener">🔗 Open link</a>` : '<span></span>'}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── MODAL ─────────────────────────────────────────────
+  window.openModal = function(id = null) {
+    _editingId = id;
+    document.getElementById('modalTitle').textContent = id ? 'Edit Resource' : 'Add Resource';
+    document.getElementById('formErr').style.display = 'none';
+
+    if (id) {
+      const r = _resources.find(x => x.id === id);
+      if (!r) return;
+      document.getElementById('fTitle').value    = r.title || '';
+      document.getElementById('fCategory').value = r.category || '';
+      document.getElementById('fDesc').value      = r.description || '';
+      document.getElementById('fLink').value      = r.link || '';
+      document.getElementById('fReadTime').value  = r.read_time || '';
+    } else {
+      document.getElementById('fTitle').value    = '';
+      document.getElementById('fCategory').value = '';
+      document.getElementById('fDesc').value      = '';
+      document.getElementById('fLink').value      = '';
+      document.getElementById('fReadTime').value  = '';
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  };
+
+  window.closeModal = function() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    _editingId = null;
+  };
+
+  window.editResource = function(id) { openModal(id); };
+
+  // ── SAVE ──────────────────────────────────────────────
+  window.saveResource = async function() {
+    const title    = document.getElementById('fTitle').value.trim();
+    const category = document.getElementById('fCategory').value;
+    const desc     = document.getElementById('fDesc').value.trim();
+    const link     = document.getElementById('fLink').value.trim();
+    const readTime = document.getElementById('fReadTime').value.trim();
+
+    if (!title || !category || !desc) {
+      document.getElementById('formErr').style.display = 'block';
+      return;
+    }
+    document.getElementById('formErr').style.display = 'none';
+
+    const btn = document.getElementById('saveBtn');
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    try {
+      const isEdit = !!_editingId;
+      const url    = isEdit ? `/api/resource/${_editingId}` : '/api/resource';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res  = await fetch(url, {
+        method,
+        headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, category, description: desc, link, read_time: readTime }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      closeModal();
+      _token = await auth.currentUser.getIdToken(); // refresh token
+      await loadResources();
+    } catch (err) {
+      alert(`Failed to save: ${err.message}`);
+    } finally {
+      btn.textContent = 'Save Resource';
+      btn.disabled = false;
+    }
+  };
+
+  // ── DELETE ────────────────────────────────────────────
+  window.deleteResource = async function(id, title) {
+    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    try {
+      const res  = await fetch(`/api/resource/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${_token}` },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      _token = await auth.currentUser.getIdToken();
+      await loadResources();
+    } catch (err) {
+      alert(`Failed to delete: ${err.message}`);
+    }
+  };
+
+  // ── FILTER & SEARCH ───────────────────────────────────
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      _currentFilter = chip.dataset.filter;
+      render();
+    });
+  });
+
+  document.getElementById('searchInput').addEventListener('input', render);
+
+  // Close modal on overlay click
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  });
+
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

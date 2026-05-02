@@ -9,15 +9,16 @@
   :root { --bg: #f5f0ff; --surface: #ffffff; --border: #e2d9f3; --text-primary: #1a1d23; --text-secondary: #5a6075; --accent: #7c3aed; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 240px; }
   html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
   .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--accent); display: flex; flex-direction: column; padding: 32px 0 24px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; }
+  .sidebar { width: var(--sidebar-width); background: var(--accent); display: flex; flex-direction: column; padding: 32px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; flex-shrink: 0; }
   .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
   .sidebar-logo small { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .sidebar-main { flex: 1; overflow: hidden; }
   .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
   .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
   .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
   .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+  .sidebar-bottom { flex-shrink: 0; border-top: 1px solid rgba(255,255,255,0.2); padding: 8px 0 48px; }
   .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
   .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
   .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -43,13 +44,16 @@
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-logo"><span>GCSW</span><small>Counselor Portal</small></div>
-    <a class="nav-item" href="/dashboard">Dashboard</a>
-    <div class="nav-section-label">Management</div>
-    <a class="nav-item" href="/students">Student Monitoring</a>
-    <a class="nav-item" href="/requests">Counseling Requests</a>
-    <a class="nav-item" href="/sessions">Active Sessions</a>
-    <a class="nav-item" href="/case-notes">Case Notes</a>
-    <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
+    <div class="sidebar-main">
+      <a class="nav-item" href="/dashboard">Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" href="/students">Student Monitoring</a>
+      <a class="nav-item" href="/requests">Counseling Requests</a>
+      <a class="nav-item" href="/sessions">Active Sessions</a>
+      <a class="nav-item" href="/case-notes">Case Notes</a>
+      <a class="nav-item" href="/risk-alerts">Risk Alerts</a>
+      <a class="nav-item" href="/resources">Resource Library</a>
+    </div>
     <div class="sidebar-bottom">
       <a class="nav-item active" href="/about">About Us</a>
       <a class="nav-item" href="/contacts">Contacts</a>
@@ -85,7 +89,7 @@
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
       const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js");
+      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
       await signOut(auth);
     } catch(e) {}
     window.location.replace('/login');

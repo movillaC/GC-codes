@@ -86,105 +86,130 @@ def api_users_list():
     """Get all users (admin only)"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        
-        # Fetch all users from database
+
         users = []
         docs = db.collection('users').stream()
         for doc in docs:
             user_data = doc.to_dict()
+            disabled = user_data.get('disabled', False)
             users.append({
                 'uid': user_data.get('uid'),
                 'email': user_data.get('email'),
-                'name': user_data.get('name', ''),
+                'name': user_data.get('displayName', user_data.get('name', '')),
                 'role': user_data.get('role', 'student'),
-                'created_at': user_data.get('created_at'),
-                'updated_at': user_data.get('updated_at')
+                'created': str(user_data.get('createdAt', user_data.get('created_at', ''))),
+                'updated_at': str(user_data.get('updated_at', '')),
+                'disabled': disabled,
+                'status': 'banned' if disabled else 'active',
             })
-        
+
         return jsonify({'success': True, 'users': users})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/users/<uid>', methods=['GET'])
 def api_user_detail(uid):
     """Get user details (admin only)"""
     try:
         admin_uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        
+
         doc = db.collection('users').document(uid).get()
         if not doc.exists:
             return jsonify({'success': False, 'message': 'User not found'}), 404
-        
+
         user_data = doc.to_dict()
+        disabled = user_data.get('disabled', False)
         return jsonify({
             'success': True,
             'user': {
                 'uid': user_data.get('uid'),
                 'email': user_data.get('email'),
-                'name': user_data.get('name', ''),
+                'name': user_data.get('displayName', user_data.get('name', '')),
                 'role': user_data.get('role', 'student'),
-                'created_at': user_data.get('created_at'),
-                'updated_at': user_data.get('updated_at')
+                'created': str(user_data.get('createdAt', user_data.get('created_at', ''))),
+                'updated_at': str(user_data.get('updated_at', '')),
+                'disabled': disabled,
+                'status': 'banned' if disabled else 'active',
             }
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
+
 @app.route('/api/users/<uid>', methods=['DELETE'])
 def api_user_delete(uid):
-    """Delete a user (admin only)"""
+    """Delete a user (admin only) — DELETE variant"""
     try:
         admin_uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        
-        # Delete user from Firestore
+
+        try:
+            firebase_auth.delete_user(uid)
+        except firebase_auth.UserNotFoundError:
+            pass
+
         db.collection('users').document(uid).delete()
-        
-        # Log audit event
+
         db.collection('audit_logs').add({
             'admin_uid': admin_uid,
             'action': 'user_deleted',
             'target_uid': uid,
-            'timestamp': datetime.now()
+            'user': admin_uid,
+            'target': uid,
+            'severity': 'warning',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
-        
+
         return jsonify({'success': True, 'message': 'User deleted successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/audit-logs', methods=['GET'])
 def api_audit_logs():
     """Get audit logs (admin only)"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        
+
+        from google.cloud import firestore
         logs = []
-        docs = db.collection('audit_logs').order_by('timestamp', direction='DESCENDING').limit(100).stream()
+        docs = (
+            db.collection('audit_logs')
+            .order_by('timestamp', direction=firestore.Query.DESCENDING)
+            .limit(500)
+            .stream()
+        )
         for doc in docs:
             log_data = doc.to_dict()
             logs.append({
-                'admin_uid': log_data.get('admin_uid'),
-                'action': log_data.get('action'),
-                'target_uid': log_data.get('target_uid', ''),
-                'timestamp': log_data.get('timestamp')
+                'timestamp': log_data.get('timestamp', ''),
+                'severity': log_data.get('severity', 'info'),
+                'action': log_data.get('action', '—'),
+                'user': log_data.get('user', log_data.get('admin_uid', '—')),
+                'target': log_data.get('target', log_data.get('target_uid', '—')),
+                'ip': log_data.get('ip', '—'),
             })
-        
+
         return jsonify({'success': True, 'logs': logs})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/system/config', methods=['GET'])
 def api_system_config_get():
     """Get system configuration (admin only)"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        
+
         doc = db.collection('system_config').document('config').get()
         if doc.exists:
             return jsonify({'success': True, 'config': doc.to_dict()})
-        
+
         return jsonify({'success': True, 'config': {}})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/system/config', methods=['POST'])
 def api_system_config_update():
@@ -192,64 +217,83 @@ def api_system_config_update():
     try:
         uid, _, _ = verify_token(request, allowed_roles=['admin'])
         body = request.get_json()
-        
-        db.collection('system_config').document('config').update({
-            **body,
-            'updated_at': datetime.now(),
-            'updated_by': uid
-        })
-        
-        # Log audit event
+        if not body:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        db.collection('system_config').document('config').set(
+            {**body, 'updated_at': datetime.now().isoformat(), 'updated_by': uid},
+            merge=True
+        )
+
         db.collection('audit_logs').add({
             'admin_uid': uid,
             'action': 'system_config_updated',
-            'timestamp': datetime.now()
+            'user': uid,
+            'severity': 'info',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
-        
+
         return jsonify({'success': True, 'message': 'System configuration updated'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/backup/create', methods=['POST'])
 def api_backup_create():
     """Create backup (admin only)"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        
-        # Record backup creation in audit logs
+
+        db.collection('backups').add({
+            'created_by': uid,
+            'created_at': datetime.now().isoformat(),
+            'status': 'completed',
+        })
+
         db.collection('audit_logs').add({
             'admin_uid': uid,
             'action': 'backup_created',
-            'timestamp': datetime.now()
+            'user': uid,
+            'severity': 'info',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
-        
-        db.collection('backups').add({
-            'created_by': uid,
-            'created_at': datetime.now(),
-            'status': 'completed'
+
+        return jsonify({
+            'success': True,
+            'message': 'Backup created successfully',
+            'backup': {'status': 'completed', 'created_at': datetime.now().isoformat()},
         })
-        
-        return jsonify({'success': True, 'message': 'Backup created successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/backup/list', methods=['GET'])
 def api_backup_list():
     """List backups (admin only)"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        
+
+        from google.cloud import firestore
         backups = []
-        docs = db.collection('backups').order_by('created_at', direction='DESCENDING').stream()
+        docs = (
+            db.collection('backups')
+            .order_by('created_at', direction=firestore.Query.DESCENDING)
+            .stream()
+        )
         for doc in docs:
             backup_data = doc.to_dict()
             backups.append({
                 'id': doc.id,
                 'created_by': backup_data.get('created_by'),
-                'created_at': backup_data.get('created_at'),
-                'status': backup_data.get('status')
+                'datetime': backup_data.get('created_at', ''),
+                'created_at': backup_data.get('created_at', ''),
+                'status': backup_data.get('status', 'success'),
+                'type': backup_data.get('type', 'Full'),
+                'size': backup_data.get('size', '—'),
             })
-        
+
         return jsonify({'success': True, 'backups': backups})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -264,16 +308,19 @@ def api_stats():
         students   = sum(1 for u in users if u.to_dict().get('role') == 'student')
         counselors = sum(1 for u in users if u.to_dict().get('role') == 'counselor')
         admins     = sum(1 for u in users if u.to_dict().get('role') == 'admin')
-        sessions   = list(db.collection('counseling_sessions').stream())
-        return jsonify({'success': True, 'stats': {
+        alerts     = sum(1 for u in users if u.to_dict().get('disabled', False))
+
+        return jsonify({
+            'success': True,
             'total_users': len(users),
             'students': students,
             'counselors': counselors,
             'admins': admins,
-            'total_sessions': len(sessions)
-        }})
+            'alerts': alerts,
+        })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/users/create', methods=['POST'])
 def api_users_create():
@@ -281,72 +328,177 @@ def api_users_create():
     try:
         admin_uid, _, _ = verify_token(request, allowed_roles=['admin'])
         body = request.get_json()
+        if not body:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
         email    = body.get('email')
         password = body.get('password')
         role     = body.get('role', 'student')
         name     = body.get('name', '')
+
+        if not email or not password:
+            return jsonify({'success': False, 'message': 'Email and password are required'}), 400
+
         user = firebase_auth.create_user(email=email, password=password, display_name=name)
         db.collection('users').document(user.uid).set({
-            'uid': user.uid, 'email': email, 'displayName': name,
-            'role': role, 'disabled': False,
-            'createdAt': datetime.now(), 'updated_at': datetime.now()
+            'uid': user.uid,
+            'email': email,
+            'displayName': name,
+            'role': role,
+            'disabled': False,
+            'createdAt': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat(),
         })
         db.collection('audit_logs').add({
-            'admin_uid': admin_uid, 'action': 'user_created',
-            'target_uid': user.uid, 'timestamp': datetime.now()
+            'admin_uid': admin_uid,
+            'action': 'user_created',
+            'target_uid': user.uid,
+            'user': admin_uid,
+            'target': user.uid,
+            'severity': 'info',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
         return jsonify({'success': True, 'message': 'User created successfully', 'uid': user.uid})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
+
 @app.route('/api/users/delete', methods=['POST'])
 def api_users_delete():
-    """Delete a user (admin only)"""
+    """Delete a user (admin only) — POST variant used by the frontend"""
     try:
         admin_uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        uid = request.get_json().get('uid')
-        firebase_auth.delete_user(uid)
+        body = request.get_json()
+        if not body:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        uid = body.get('uid')
+        if not uid:
+            return jsonify({'success': False, 'message': 'uid is required'}), 400
+
+        try:
+            firebase_auth.delete_user(uid)
+        except firebase_auth.UserNotFoundError:
+            pass
+
         db.collection('users').document(uid).delete()
         db.collection('audit_logs').add({
-            'admin_uid': admin_uid, 'action': 'user_deleted',
-            'target_uid': uid, 'timestamp': datetime.now()
+            'admin_uid': admin_uid,
+            'action': 'user_deleted',
+            'target_uid': uid,
+            'user': admin_uid,
+            'target': uid,
+            'severity': 'warning',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
         return jsonify({'success': True, 'message': 'User deleted successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/api/users/edit', methods=['POST'])
+def api_users_edit():
+    """Update a user's name and/or role (admin only)"""
+    try:
+        admin_uid, _, _ = verify_token(request, allowed_roles=['admin'])
+        body = request.get_json()
+        if not body:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        uid = body.get('uid', '').strip()
+        if not uid:
+            return jsonify({'success': False, 'message': 'uid is required'}), 400
+
+        doc = db.collection('users').document(uid).get()
+        if not doc.exists:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+
+        updates = {'updated_at': datetime.now().isoformat()}
+
+        if 'role' in body:
+            if body['role'] not in ('student', 'counselor', 'admin'):
+                return jsonify({'success': False, 'message': 'Invalid role'}), 400
+            updates['role'] = body['role']
+
+        if 'name' in body:
+            updates['displayName'] = (body['name'] or '').strip()
+            try:
+                firebase_auth.update_user(uid, display_name=updates['displayName'] or None)
+            except Exception:
+                pass
+
+        db.collection('users').document(uid).update(updates)
+        db.collection('audit_logs').add({
+            'admin_uid': admin_uid,
+            'action': 'user_edited',
+            'target_uid': uid,
+            'user': admin_uid,
+            'target': uid,
+            'severity': 'info',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
+        })
+        return jsonify({'success': True, 'message': 'User updated successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/users/ban', methods=['POST'])
 def api_users_ban():
     """Ban or unban a user (admin only)"""
     try:
         admin_uid, _, _ = verify_token(request, allowed_roles=['admin'])
-        body    = request.get_json()
+        body = request.get_json()
+        if not body:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
         uid     = body.get('uid')
         disable = body.get('disable', True)
+
         firebase_auth.update_user(uid, disabled=disable)
-        db.collection('users').document(uid).update({'disabled': disable, 'updated_at': datetime.now()})
+        db.collection('users').document(uid).update({
+            'disabled': disable,
+            'updated_at': datetime.now().isoformat(),
+        })
         action = 'user_banned' if disable else 'user_unbanned'
         db.collection('audit_logs').add({
-            'admin_uid': admin_uid, 'action': action,
-            'target_uid': uid, 'timestamp': datetime.now()
+            'admin_uid': admin_uid,
+            'action': action,
+            'target_uid': uid,
+            'user': admin_uid,
+            'target': uid,
+            'severity': 'warning',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
         return jsonify({'success': True, 'message': f"User {'banned' if disable else 'unbanned'} successfully"})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/backup/restore', methods=['POST'])
 def api_backup_restore():
     """Restore backup (admin only) - logs the action"""
     try:
         uid = verify_token(request, allowed_roles=['admin'])[0]
-        backup_id = request.get_json().get('backup_id')
+        body = request.get_json()
+        backup_id = body.get('backup_id') if body else None
         db.collection('audit_logs').add({
-            'admin_uid': uid, 'action': 'backup_restored',
-            'target_uid': backup_id, 'timestamp': datetime.now()
+            'admin_uid': uid,
+            'action': 'backup_restored',
+            'target_uid': backup_id,
+            'user': uid,
+            'target': backup_id or '—',
+            'severity': 'warning',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
         return jsonify({'success': True, 'message': 'Restore request logged'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/backup/schedule', methods=['POST'])
 def api_backup_schedule():
@@ -355,12 +507,17 @@ def api_backup_schedule():
         uid  = verify_token(request, allowed_roles=['admin'])[0]
         body = request.get_json()
         db.collection('system_config').document('config').set(
-            {'backup_schedule': body.get('schedule'), 'updated_by': uid, 'updated_at': datetime.now()},
+            {
+                'backup_schedule': body.get('schedule') if body else None,
+                'updated_by': uid,
+                'updated_at': datetime.now().isoformat(),
+            },
             merge=True
         )
         return jsonify({'success': True, 'message': 'Backup schedule updated'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
+
 
 @app.route('/api/system/danger/<action>', methods=['POST'])
 def api_system_danger(action):
@@ -368,23 +525,26 @@ def api_system_danger(action):
     try:
         uid = verify_token(request, allowed_roles=['admin'])[0]
         db.collection('audit_logs').add({
-            'admin_uid': uid, 'action': f'danger_zone_{action}',
-            'timestamp': datetime.now()
+            'admin_uid': uid,
+            'action': f'danger_zone_{action}',
+            'user': uid,
+            'severity': 'critical',
+            'ip': request.remote_addr,
+            'timestamp': datetime.now().isoformat(),
         })
         return jsonify({'success': True, 'message': f'Action {action} logged'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
+
 # ─── ERROR HANDLERS ───────────────────────────────────────────────────────
 
 @app.errorhandler(404)
 def not_found(error):
-    """Handle 404 errors"""
     return jsonify({'error': 'Not found'}), 404
 
 @app.errorhandler(500)
 def server_error(error):
-    """Handle 500 errors"""
     return jsonify({'error': 'Internal server error'}), 500
 
 # ─── RUN APPLICATION ──────────────────────────────────────────────────────

@@ -95,6 +95,13 @@
   .modal-cancel:hover { background: #e5e7eb; }
   .modal-confirm { background: var(--red); color: #fff; border: none; border-radius: var(--radius); padding: 10px 20px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
   .modal-confirm:hover { background: var(--red-hover); }
+
+  /* VIEW USER MODAL */
+  .view-detail { display: flex; flex-direction: column; gap: 12px; }
+  .view-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .view-row:last-child { border-bottom: none; }
+  .view-key { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+  .view-val { font-size: 14px; font-weight: 500; color: var(--text-primary); }
 </style>
 </head>
 <body>
@@ -123,7 +130,7 @@
     <div class="toolbar">
       <div class="search-wrap">
         <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="Search by email..." oninput="filterTable()" />
+        <input type="text" id="searchInput" placeholder="Search by email..." oninput="filterTable()" autocomplete="off" />
       </div>
       <select class="filter-select" id="roleFilter" onchange="filterTable()">
         <option value="">All Roles</option>
@@ -193,6 +200,40 @@
   </div>
 </div>
 
+<!-- VIEW USER MODAL -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal">
+    <div class="modal-title">User Details</div>
+    <div class="view-detail" id="viewDetail"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal('viewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Edit User</div>
+    <div class="modal-field">
+      <label class="modal-label">Name</label>
+      <input class="modal-input" type="text" id="editName" placeholder="Display name" />
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Role</label>
+      <select class="modal-input" id="editRole">
+        <option value="student">Student</option>
+        <option value="counselor">Counselor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal('editModal')">Cancel</button>
+      <button class="modal-confirm" onclick="confirmEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM DELETE MODAL -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal">
@@ -213,11 +254,19 @@
   let currentPage = 1;
   const perPage = 10;
   let deleteUID = null;
+  let editUID = null;
+  // Store filter state in JS — never read from DOM except on explicit user input
+  let activeSearch = '';
+  let activeRole = '';
+  let activeStatus = '';
+
+  // On load: force-clear inputs and reset JS state (defeats browser autofill)
+  document.getElementById('searchInput').value = '';
+  document.getElementById('roleFilter').value = '';
+  document.getElementById('statusFilter').value = '';
 
   auth.onAuthStateChanged(async user => {
     if (!user) { window.location.replace('/login'); return; }
-    const token = await user.getIdTokenResult();
-    if (token.claims.role !== 'admin') { window.location.replace('/dashboard'); return; }
     loadUsers(await user.getIdToken());
   });
 
@@ -235,6 +284,9 @@
   }
 
   window.filterTable = function() {
+    activeSearch = document.getElementById('searchInput').value.toLowerCase();
+    activeRole = document.getElementById('roleFilter').value;
+    activeStatus = document.getElementById('statusFilter').value;
     currentPage = 1;
     renderTable();
   };
@@ -247,13 +299,10 @@
   };
 
   function getFiltered() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const role = document.getElementById('roleFilter').value;
-    const status = document.getElementById('statusFilter').value;
     return allUsers.filter(u =>
-      (!search || u.email.toLowerCase().includes(search)) &&
-      (!role || u.role === role) &&
-      (!status || u.status === status)
+      (!activeSearch || u.email.toLowerCase().includes(activeSearch)) &&
+      (!activeRole || u.role === activeRole) &&
+      (!activeStatus || u.status === activeStatus)
     );
   }
 
@@ -298,6 +347,56 @@
     document.getElementById('deleteModal').classList.add('open');
   };
 
+  // ── VIEW USER ──────────────────────────────────────────────────────────
+  window.viewUser = async (uid) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`/api/users/${uid}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (!data.success) { alert(data.message || 'Failed to load user.'); return; }
+      const u = data.user;
+      document.getElementById('viewDetail').innerHTML = `
+        <div class="view-row"><span class="view-key">Email</span><span class="view-val">${u.email}</span></div>
+        <div class="view-row"><span class="view-key">Name</span><span class="view-val">${u.name || '—'}</span></div>
+        <div class="view-row"><span class="view-key">Role</span><span class="view-val"><span class="badge ${u.role}">${u.role}</span></span></div>
+        <div class="view-row"><span class="view-key">Status</span><span class="view-val"><span class="badge ${u.status || 'active'}">${u.status || 'active'}</span></span></div>
+        <div class="view-row"><span class="view-key">Created</span><span class="view-val">${u.created || '—'}</span></div>
+        <div class="view-row"><span class="view-key">Last Updated</span><span class="view-val">${u.updated_at || '—'}</span></div>
+      `;
+      document.getElementById('viewModal').classList.add('open');
+    } catch { alert('Failed to load user.'); }
+  };
+
+  // ── EDIT USER ──────────────────────────────────────────────────────────
+  window.editUser = (uid) => {
+    const user = allUsers.find(u => u.uid === uid);
+    if (!user) return;
+    editUID = uid;
+    document.getElementById('editName').value = user.name || '';
+    document.getElementById('editRole').value = user.role || 'student';
+    document.getElementById('editModal').classList.add('open');
+  };
+
+  window.confirmEdit = async () => {
+    if (!editUID) return;
+    const name = document.getElementById('editName').value.trim();
+    const role = document.getElementById('editRole').value;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch('/api/users/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ uid: editUID, name, role })
+      });
+      const data = await res.json();
+      if (data.success) { closeModal('editModal'); loadUsers(token); }
+      else { alert(data.message || 'Failed to update user.'); }
+    } catch { alert('Failed to update user.'); }
+  };
+
+  // ── ADD USER ───────────────────────────────────────────────────────────
   window.addUser = async () => {
     const email = document.getElementById('newEmail').value.trim();
     const role = document.getElementById('newRole').value;
@@ -314,6 +413,7 @@
     else { alert(data.message || 'Failed to create user.'); }
   };
 
+  // ── DELETE USER ────────────────────────────────────────────────────────
   window.confirmDelete = async () => {
     if (!deleteUID) return;
     const token = await auth.currentUser.getIdToken();
@@ -327,19 +427,23 @@
     else { alert(data.message || 'Failed to delete user.'); }
   };
 
+  // ── BAN USER ───────────────────────────────────────────────────────────
   window.banUser = async (uid) => {
-    if (!confirm('Ban this user?')) return;
+    const user = allUsers.find(u => u.uid === uid);
+    if (!user) return;
+    const isBanned = user.status === 'banned';
+    const action = isBanned ? 'Unban' : 'Ban';
+    if (!confirm(`${action} this user (${user.email})?`)) return;
     const token = await auth.currentUser.getIdToken();
-    await fetch('/api/users/ban', {
+    const res = await fetch('/api/users/ban', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ uid })
+      body: JSON.stringify({ uid, disable: !isBanned })
     });
-    loadUsers(token);
+    const data = await res.json();
+    if (data.success) { loadUsers(token); }
+    else { alert(data.message || 'Failed to update user.'); }
   };
-
-  
-  
 </script>
 </body>
 </html>
