@@ -1,3 +1,33 @@
+# Firebase credentials - NEVER commit these
 backend/gcsw-cca5d-firebase-adminsdk-fbsvc-d23a6a3758.json
-__pycache__/
+*firebase-adminsdk*.json
+serviceAccountKey.json
+
+# Environment variables
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.pyc
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

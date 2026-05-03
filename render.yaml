@@ -7,18 +7,14 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python backend/student_server.py
     envVars:
-      - key: SECRET_KEY
-        scope: run
-        value: ${SECRET_KEY}
-      - key: FIREBASE_CREDENTIALS_JSON
-        scope: run
-        value: ${FIREBASE_CREDENTIALS_JSON}
-      - key: PORT
-        scope: run
-        value: 8000
       - key: FLASK_ENV
-        scope: run
         value: production
+      - key: PORT
+        value: 10000
+      - key: SECRET_KEY
+        sync: false   # Set this manually in the Render dashboard
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false   # Set this manually in the Render dashboard
 
   - type: web
     name: gcsw-admin-server
@@ -28,18 +24,14 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python backend/admin_server.py
     envVars:
-      - key: SECRET_KEY
-        scope: run
-        value: ${SECRET_KEY}
-      - key: FIREBASE_CREDENTIALS_JSON
-        scope: run
-        value: ${FIREBASE_CREDENTIALS_JSON}
-      - key: PORT
-        scope: run
-        value: 8001
       - key: FLASK_ENV
-        scope: run
         value: production
+      - key: PORT
+        value: 10000
+      - key: SECRET_KEY
+        sync: false
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false
 
   - type: web
     name: gcsw-consultant-server
@@ -49,15 +41,11 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python backend/consultant_server.py
     envVars:
-      - key: SECRET_KEY
-        scope: run
-        value: ${SECRET_KEY}
-      - key: FIREBASE_CREDENTIALS_JSON
-        scope: run
-        value: ${FIREBASE_CREDENTIALS_JSON}
-      - key: PORT
-        scope: run
-        value: 8002
       - key: FLASK_ENV
-        scope: run
         value: production
+      - key: PORT
+        value: 10000
+      - key: SECRET_KEY
+        sync: false
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false
