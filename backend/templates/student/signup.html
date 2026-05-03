@@ -372,7 +372,13 @@
     footer a:hover {
       opacity: 1;
     }
-  </style>
+    input[name="year"]:checked + .year-btn {
+    border-color: var(--green);
+    background: var(--green);
+    color: #fff;
+    font-weight: 600;
+  }
+</style>
 </head>
 <body>
 
@@ -457,19 +463,19 @@
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
               <div style="position: relative;">
                 <input type="radio" name="year" id="y1" value="1st Year" style="position: absolute; opacity: 0;">
-                <label for="y1" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">1st Year</label>
+                <label for="y1" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">1st Year</label>
               </div>
               <div style="position: relative;">
                 <input type="radio" name="year" id="y2" value="2nd Year" style="position: absolute; opacity: 0;">
-                <label for="y2" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">2nd Year</label>
+                <label for="y2" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">2nd Year</label>
               </div>
               <div style="position: relative;">
                 <input type="radio" name="year" id="y3" value="3rd Year" style="position: absolute; opacity: 0;">
-                <label for="y3" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">3rd Year</label>
+                <label for="y3" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">3rd Year</label>
               </div>
               <div style="position: relative;">
                 <input type="radio" name="year" id="y4" value="4th Year+" style="position: absolute; opacity: 0;">
-                <label for="y4" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">4th+</label>
+                <label for="y4" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">4th+</label>
               </div>
             </div>
           </div>
