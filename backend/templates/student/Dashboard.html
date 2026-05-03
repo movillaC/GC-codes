@@ -30,9 +30,8 @@
     top: 0; left: 0;
     height: 100vh;
     z-index: 10;
-    overflow-y: auto;
-    overflow-x: hidden;
   }
+  .sidebar-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
   .sidebar::-webkit-scrollbar { width: 4px; }
   .sidebar::-webkit-scrollbar-track { background: transparent; }
   .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
@@ -187,6 +186,7 @@
       <span>Student Portal</span>
     </div>
 
+    <div class="sidebar-scroll">
     <a class="nav-item active" href="/dashboard">Dashboard</a>
     <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
     <a class="nav-item" href="/resource-library">Resource Library</a>
@@ -204,6 +204,7 @@
       <a class="nav-item" href="/ai-chat">AI Chat</a>
       <a class="nav-item" href="/activity-log">Activity Log</a>
       <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+    </div>
     </div>
 
     <div class="sidebar-bottom">
