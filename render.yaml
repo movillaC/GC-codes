@@ -3,7 +3,6 @@ services:
     name: gcsw-student-server
     env: python
     plan: free
-    runtime: python-3.11
     buildCommand: pip install -r requirements.txt
     startCommand: python backend/student_server.py
     envVars:
@@ -20,7 +19,6 @@ services:
     name: gcsw-admin-server
     env: python
     plan: free
-    runtime: python-3.11
     buildCommand: pip install -r requirements.txt
     startCommand: python backend/admin_server.py
     envVars:
@@ -37,7 +35,6 @@ services:
     name: gcsw-consultant-server
     env: python
     plan: free
-    runtime: python-3.11
     buildCommand: pip install -r requirements.txt
     startCommand: python backend/consultant_server.py
     envVars:
