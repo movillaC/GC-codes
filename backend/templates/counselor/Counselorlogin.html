@@ -71,7 +71,7 @@
 <script type="module">
   import { auth } from '/static/firebase_config.js';
   import { signInWithEmailAndPassword, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   // If already logged in, skip straight to dashboard
   onAuthStateChanged(auth, user => {

@@ -183,7 +183,7 @@
 
 <script type="module">
   import { auth } from '/static/firebase_config.js';
-  import { signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   auth.onAuthStateChanged(async user => {
     if (!user) { window.location.replace('/login'); return; }

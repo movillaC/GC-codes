@@ -73,7 +73,7 @@
 
   <script type="module">
     import { auth } from '/static/firebase_config.js';
-    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     // Redirect already-logged-in users straight to dashboard
     auth.onAuthStateChanged(user => {

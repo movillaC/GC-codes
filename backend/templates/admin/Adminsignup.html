@@ -116,7 +116,7 @@
         </div>
         <h2>Account Created!</h2>
         <p style="font-size:13px;color:var(--text-secondary);margin:12px 0 20px;line-height:1.6;">
-          Your admin account has been created. Redirecting to login...
+          Your admin account has been created. Redirecting to dashboard...
         </p>
       </div>
     </div>
@@ -125,8 +125,8 @@
 
 <script type="module">
   import { auth, db } from '/static/firebase_config.js';
-  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
   function goTo(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -223,7 +223,7 @@
       await auth.signOut();
 
       goTo('screenSuccess');
-      setTimeout(() => window.location.replace('/login'), 1500);
+      setTimeout(() => window.location.replace('/admin/dashboard'), 1500);
 
     } catch (error) {
       signupBtn.textContent = 'Create Account';
