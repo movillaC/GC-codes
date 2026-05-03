@@ -18,7 +18,11 @@
   .layout { display: flex; min-height: 100vh; }
 
   /* SIDEBAR */
-  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; overflow-x: hidden; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+  .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
   .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 28px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px; flex-shrink: 0; }
   .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
   .sidebar-main { flex: 1; overflow: hidden; }
