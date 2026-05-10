@@ -20,6 +20,89 @@ app.config.from_object(StudentConfig)
 
 db = get_db()
 
+# ─── HELPER FUNCTION ──────────────────────────────────────────────────────
+
+def recompute_summaries(uid):
+    """
+    Recompute and cache daily and weekly summaries for a student.
+    Called after every health log submission.
+    """
+    try:
+        ts = today_start()
+        ws = week_start()
+
+        def serialize(record):
+            d = record.to_dict()
+            if 'logged_at' in d and hasattr(d['logged_at'], 'isoformat'):
+                d['logged_at'] = d['logged_at'].isoformat()
+            return d
+
+        # Get today's records
+        sleep_today = [serialize(r) for r in
+                       db.collection('users').document(uid).collection('sleep_records')
+                       .where('logged_at', '>=', ts).stream()]
+        mood_today = [serialize(r) for r in
+                      db.collection('users').document(uid).collection('mood_records')
+                      .where('logged_at', '>=', ts).stream()]
+        water_today = [serialize(r) for r in
+                       db.collection('users').document(uid).collection('water_records')
+                       .where('logged_at', '>=', ts).stream()]
+        stress_today = [serialize(r) for r in
+                        db.collection('users').document(uid).collection('stress_records')
+                        .where('logged_at', '>=', ts).stream()]
+        activity_today = [serialize(r) for r in
+                          db.collection('users').document(uid).collection('activity_records')
+                          .where('logged_at', '>=', ts).stream()]
+        steps_today = [serialize(r) for r in
+                       db.collection('users').document(uid).collection('step_records')
+                       .where('logged_at', '>=', ts).stream()]
+
+        # Cache daily summary
+        daily_summary = {
+            'mood':          mood_today[-1]['mood'] if mood_today else None,
+            'sleep':         sleep_today[-1]['total'] if sleep_today else None,
+            'water_liters':  round(sum(r.get('amount_ml', 0) for r in water_today) / 1000, 1),
+            'stress':        'Logged' if stress_today else None,
+            'activity_mins': sum(r.get('duration_mins', 0) for r in activity_today),
+            'steps':         sum(r.get('steps', 0) for r in steps_today),
+            'updated_at':    datetime.now(timezone.utc),
+        }
+        db.collection('users').document(uid).collection('summaries').document('daily').set(daily_summary, merge=True)
+
+        # Get week's records
+        sleep_week = [serialize(r) for r in
+                      db.collection('users').document(uid).collection('sleep_records')
+                      .where('logged_at', '>=', ws).stream()]
+        mood_week = [serialize(r) for r in
+                     db.collection('users').document(uid).collection('mood_records')
+                     .where('logged_at', '>=', ws).stream()]
+        water_week = [serialize(r) for r in
+                      db.collection('users').document(uid).collection('water_records')
+                      .where('logged_at', '>=', ws).stream()]
+        stress_week = [serialize(r) for r in
+                       db.collection('users').document(uid).collection('stress_records')
+                       .where('logged_at', '>=', ws).stream()]
+        activity_week = [serialize(r) for r in
+                         db.collection('users').document(uid).collection('activity_records')
+                         .where('logged_at', '>=', ws).stream()]
+        steps_week = [serialize(r) for r in
+                      db.collection('users').document(uid).collection('step_records')
+                      .where('logged_at', '>=', ws).stream()]
+
+        # Cache weekly summary
+        weekly_summary = {
+            'sleep':    sleep_week,
+            'mood':     mood_week,
+            'water':    water_week,
+            'stress':   stress_week,
+            'activity': activity_week,
+            'steps':    steps_week,
+            'updated_at': datetime.now(timezone.utc),
+        }
+        db.collection('users').document(uid).collection('summaries').document('weekly').set(weekly_summary, merge=True)
+    except Exception as e:
+        print(f"Error recomputing summaries for {uid}: {e}")
+
 # ─── AUTHENTICATION ROUTES ────────────────────────────────────────────────
 
 @app.route('/')
@@ -89,6 +172,32 @@ def weekly_summary():
     """Weekly summary page"""
     return render_template('student/Weeklysummary.html')
 
+# ─── FCM TOKEN API ────────────────────────────────────────────────
+
+@app.route('/api/fcm-token', methods=['POST'])
+def api_fcm_token():
+    """Save or update the student's FCM token for push notifications."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+        body  = request.get_json(silent=True) or {}
+        token = (body.get('token') or body.get('fcm_token') or '').strip()
+        if not token:
+            return jsonify({'success': False, 'message': 'token is required'}), 400
+
+        db.collection('users').document(uid).set(
+            {'fcm_token': token, 'updated_at': datetime.now(timezone.utc)},
+            merge=True
+        )
+        return jsonify({'success': True, 'message': 'FCM token saved.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/profile')
+def profile_page():
+    """Student profile page"""
+    return render_template('student/Profile.html')
+
 @app.route('/resource-library')
 def resource_library():
     """Resource library page"""
@@ -121,9 +230,11 @@ def api_sleep():
     """Log sleep data"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        body = request.get_json()
+        body = request.get_json(silent=True) or {}
         sleep_time = body.get('sleep_time')
         wake_time = body.get('wake_time')
+        if not sleep_time or not wake_time:
+            return jsonify({'success': False, 'message': 'sleep_time and wake_time are required'}), 400
 
         # Calculate total sleep hours
         sh, sm = map(int, sleep_time.split(':'))
@@ -142,6 +253,7 @@ def api_sleep():
             'total': total,
             'logged_at': datetime.now(timezone.utc)
         })
+        recompute_summaries(uid)
         return jsonify({'success': True, 'total': total, 'message': 'Sleep record saved!'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -151,8 +263,11 @@ def api_water():
     """Log water intake"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        body = request.get_json()
-        amount_ml = int(body.get('amount_ml', 0))
+        body = request.get_json(silent=True) or {}
+        try:
+            amount_ml = int(body.get('amount_ml', 0))
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'amount_ml must be a valid integer'}), 400
 
         # Save to database
         db.collection('users').document(uid).collection('water_records').add({
@@ -167,6 +282,7 @@ def api_water():
         total_liters = round(total_ml / 1000, 1)
         percentage = min(round((total_ml / 2000) * 100), 100)
 
+        recompute_summaries(uid)
         return jsonify({'success': True, 'total_liters': total_liters, 'percentage': percentage})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -176,12 +292,16 @@ def api_mood():
     """Log mood data"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        body = request.get_json()
+        body = request.get_json(silent=True) or {}
+        mood = body.get('mood')
+        if not mood:
+            return jsonify({'success': False, 'message': 'mood is required'}), 400
         db.collection('users').document(uid).collection('mood_records').add({
-            'mood': body.get('mood'),
+            'mood': mood,
             'note': body.get('note', ''),
             'logged_at': datetime.now(timezone.utc)
         })
+        recompute_summaries(uid)
         return jsonify({'success': True, 'message': 'Mood logged!'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -191,12 +311,17 @@ def api_stress():
     """Log stress data"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        body = request.get_json()
+        body = request.get_json(silent=True) or {}
+        note = body.get('note')
+        stressor = body.get('stressor')
+        if not note or not stressor:
+            return jsonify({'success': False, 'message': 'note and stressor are required'}), 400
         db.collection('users').document(uid).collection('stress_records').add({
-            'note': body.get('note'),
-            'stressor': body.get('stressor'),
+            'note': note,
+            'stressor': stressor,
             'logged_at': datetime.now(timezone.utc)
         })
+        recompute_summaries(uid)
         return jsonify({'success': True, 'message': 'Stress note saved!'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -206,11 +331,17 @@ def api_activity():
     """Log activity data"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        body = request.get_json()
-        duration_mins = int(body.get('duration_mins', 0))
+        body = request.get_json(silent=True) or {}
+        activity = body.get('activity')
+        if not activity:
+            return jsonify({'success': False, 'message': 'activity is required'}), 400
+        try:
+            duration_mins = int(body.get('duration_mins', 0))
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'duration_mins must be a valid integer'}), 400
 
         db.collection('users').document(uid).collection('activity_records').add({
-            'activity': body.get('activity'),
+            'activity': activity,
             'duration_mins': duration_mins,
             'logged_at': datetime.now(timezone.utc)
         })
@@ -221,6 +352,7 @@ def api_activity():
         total_mins = sum(r.to_dict().get('duration_mins', 0) for r in records)
         percentage = min(round((total_mins / 60) * 100), 100)
 
+        recompute_summaries(uid)
         return jsonify({'success': True, 'total_mins': total_mins, 'percentage': percentage})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -230,8 +362,11 @@ def api_steps():
     """Log steps data"""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        body = request.get_json()
-        steps = int(body.get('steps', 0))
+        body = request.get_json(silent=True) or {}
+        try:
+            steps = int(body.get('steps', 0))
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'steps must be a valid integer'}), 400
 
         db.collection('users').document(uid).collection('step_records').add({
             'steps': steps,
@@ -244,6 +379,7 @@ def api_steps():
         total_steps = sum(r.to_dict().get('steps', 0) for r in records)
         percentage = min(round((total_steps / 10000) * 100), 100)
 
+        recompute_summaries(uid)
         return jsonify({'success': True, 'total_steps': total_steps, 'percentage': percentage})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -252,32 +388,47 @@ def api_steps():
 
 @app.route('/api/summary/today', methods=['GET'])
 def today_summary():
-    """Get today's summary"""
+    """
+    Get today's summary.
+    Reads from the pre-computed 'summaries/daily' doc which is refreshed
+    automatically every time a health log is submitted.
+    Falls back to live query if no cached doc exists yet.
+    """
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        ts = today_start()
 
+        cached = db.collection('users').document(uid) \
+                   .collection('summaries').document('daily').get()
+
+        if cached.exists:
+            data = cached.to_dict()
+            # Strip the server timestamp before returning
+            data.pop('updated_at', None)
+            return jsonify({'success': True, 'summary': data})
+
+        # ── Fallback: live query (first call before any log has been submitted) ──
+        ts = today_start()
         def latest(col):
             return [r.to_dict() for r in
                     db.collection('users').document(uid).collection(col)
                     .where('logged_at', '>=', ts).stream()]
 
-        sleep = latest('sleep_records')
-        mood = latest('mood_records')
-        water = latest('water_records')
-        stress = latest('stress_records')
+        sleep    = latest('sleep_records')
+        mood     = latest('mood_records')
+        water    = latest('water_records')
+        stress   = latest('stress_records')
         activity = latest('activity_records')
-        steps = latest('step_records')
+        steps    = latest('step_records')
 
         return jsonify({
             'success': True,
             'summary': {
-                'mood': mood[-1]['mood'] if mood else '--',
-                'sleep': sleep[-1]['total'] if sleep else '0 hrs',
-                'water_liters': round(sum(r.get('amount_ml', 0) for r in water) / 1000, 1),
-                'stress': 'Logged' if stress else 'None',
+                'mood':          mood[-1]['mood'] if mood else '--',
+                'sleep':         sleep[-1]['total'] if sleep else '0 hrs',
+                'water_liters':  round(sum(r.get('amount_ml', 0) for r in water) / 1000, 1),
+                'stress':        'Logged' if stress else 'None',
                 'activity_mins': sum(r.get('duration_mins', 0) for r in activity),
-                'steps': sum(r.get('steps', 0) for r in steps)
+                'steps':         sum(r.get('steps', 0) for r in steps),
             }
         })
     except Exception as e:
@@ -285,13 +436,26 @@ def today_summary():
 
 @app.route('/api/summary/weekly', methods=['GET'])
 def weekly_summary_api():
-    """Get weekly summary"""
+    """
+    Get weekly summary.
+    Reads from the pre-computed 'summaries/weekly' doc which is refreshed
+    automatically every time a health log is submitted.
+    Falls back to live query if no cached doc exists yet.
+    """
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
+
+        cached = db.collection('users').document(uid) \
+                   .collection('summaries').document('weekly').get()
+
+        if cached.exists:
+            data = cached.to_dict()
+            return jsonify({'success': True, 'summary': data})
+
+        # ── Fallback: live query ──
         ws = week_start()
 
         def serialize(record):
-            """Convert Firestore record to JSON-safe dict with ISO logged_at string"""
             d = record.to_dict()
             if 'logged_at' in d and hasattr(d['logged_at'], 'isoformat'):
                 d['logged_at'] = d['logged_at'].isoformat()
@@ -303,12 +467,12 @@ def weekly_summary_api():
                     .where('logged_at', '>=', ws).stream()]
 
         return jsonify({'success': True, 'summary': {
-            'sleep': get_records('sleep_records'),
-            'mood': get_records('mood_records'),
-            'water': get_records('water_records'),
-            'stress': get_records('stress_records'),
+            'sleep':    get_records('sleep_records'),
+            'mood':     get_records('mood_records'),
+            'water':    get_records('water_records'),
+            'stress':   get_records('stress_records'),
             'activity': get_records('activity_records'),
-            'steps': get_records('step_records'),
+            'steps':    get_records('step_records'),
         }})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
@@ -320,7 +484,10 @@ def api_counseling_request():
     """Create a new counseling request. Returns the new session_id."""
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
-        body = request.get_json()
+        body = request.get_json(silent=True) or {}
+        message = body.get('message', '').strip()
+        if not message:
+            return jsonify({'success': False, 'message': 'message is required'}), 400
 
         # Fetch student name for counselor-side display
         s_doc = db.collection('users').document(uid).get()
@@ -333,7 +500,7 @@ def api_counseling_request():
         _, new_ref = db.collection('counseling_sessions').add({
             'student_uid':  uid,
             'student_name': student_name,
-            'message':      body.get('message'),
+            'message':      message,
             'status':       'pending',
             'source':       'request',   # distinguishes from risk-alert auto-sessions
             'created_at':   now,
@@ -477,6 +644,240 @@ def api_resources_list():
                 'read_time':   r.get('read_time', ''),
             })
         return jsonify({'success': True, 'resources': resources})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+# ─── PROFILE API ──────────────────────────────────────────────────────────
+
+@app.route('/api/profile', methods=['GET'])
+def api_profile_get():
+    """Return the current student\'s profile data."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+        doc = db.collection('users').document(uid).get()
+        if not doc.exists:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        d = doc.to_dict()
+        # Strip internal fields
+        d.pop('disabled', None)
+        d.pop('role', None)
+        # Serialize timestamps
+        for key in ('createdAt', 'updated_at'):
+            if key in d and hasattr(d[key], 'isoformat'):
+                d[key] = d[key].isoformat()
+        return jsonify({'success': True, 'profile': d})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/api/suggestions', methods=['GET'])
+def api_suggestions():
+    """Get personalized suggestions and stats based on weekly data and profile."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+        
+        # Get user profile
+        doc = db.collection('users').document(uid).get()
+        if not doc.exists:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        profile = doc.to_dict()
+        baseline = profile.get('baseline', {})
+        
+        # Get weekly summary
+        ws = week_start()
+        
+        def get_records(col):
+            return [r.to_dict() for r in
+                    db.collection('users').document(uid).collection(col)
+                    .where('logged_at', '>=', ws).stream()]
+        
+        sleep_logs    = get_records('sleep_records')
+        mood_logs     = get_records('mood_records')
+        water_logs    = get_records('water_records')
+        stress_logs   = get_records('stress_records')
+        activity_logs = get_records('activity_records')
+        steps_logs    = get_records('step_records')
+        
+        # Compute stats
+        stats = {}
+        
+        # Sleep stats
+        if sleep_logs:
+            try:
+                sleep_values = [float(r.get('total', '0').split()[0]) for r in sleep_logs if r.get('total')]
+                if sleep_values:
+                    avg_sleep = sum(sleep_values) / len(sleep_values)
+                    stats['Avg Sleep'] = f"{avg_sleep:.1f} hrs"
+            except:
+                pass
+        
+        # Mood stats
+        if mood_logs:
+            try:
+                mood_values = [float(r.get('mood', 0)) for r in mood_logs if r.get('mood')]
+                if mood_values:
+                    avg_mood = sum(mood_values) / len(mood_values)
+                    stats['Avg Mood'] = f"{avg_mood:.1f}/5"
+            except:
+                pass
+        
+        # Water stats
+        if water_logs:
+            total_ml = sum(r.get('amount_ml', 0) for r in water_logs)
+            stats['Total Water'] = f"{total_ml / 1000:.1f}L"
+        
+        # Activity stats
+        if activity_logs:
+            total_mins = sum(r.get('duration_mins', 0) for r in activity_logs)
+            stats['Activity Time'] = f"{total_mins} mins"
+        
+        # Steps stats
+        if steps_logs:
+            total_steps = sum(r.get('steps', 0) for r in steps_logs)
+            stats['Total Steps'] = f"{total_steps:,.0f}"
+        
+        # Generate suggestions
+        suggestions = []
+        
+        # Sleep suggestions
+        try:
+            if sleep_logs:
+                sleep_values = [float(r.get('total', '0').split()[0]) for r in sleep_logs if r.get('total')]
+                if sleep_values:
+                    avg_sleep = sum(sleep_values) / len(sleep_values)
+                    baseline_sleep = baseline.get('sleep_hours', 7)
+                    if avg_sleep < baseline_sleep - 1:
+                        suggestions.append(f"Try to get closer to your {baseline_sleep}hr sleep goal. Avg this week: {avg_sleep:.1f}hrs")
+        except:
+            pass
+        
+        # Stress suggestions
+        try:
+            if stress_logs and len(stress_logs) >= 2:
+                suggestions.append("Consider using stress management techniques. Check the resource library for help.")
+        except:
+            pass
+        
+        # Water suggestions
+        try:
+            if water_logs:
+                total_ml = sum(r.get('amount_ml', 0) for r in water_logs)
+                avg_daily = total_ml / 7 if water_logs else 0
+                if avg_daily < 2000:
+                    suggestions.append("Try to drink more water. Aim for at least 2L per day.")
+        except:
+            pass
+        
+        # Activity suggestions
+        try:
+            active_days = len(set(str(r.get('logged_at', '')).split(' ')[0] 
+                                  for r in activity_logs if r.get('logged_at')))
+            if active_days < 3:
+                suggestions.append("Increase your physical activity. Aim for at least 3 days per week.")
+        except:
+            pass
+        
+        # Mood suggestions
+        try:
+            if mood_logs:
+                mood_values = [float(r.get('mood', 0)) for r in mood_logs if r.get('mood')]
+                if mood_values and sum(mood_values) / len(mood_values) < 2.5:
+                    suggestions.append("Your mood seems low this week. Reach out to a counselor if needed.")
+        except:
+            pass
+        
+        if not suggestions:
+            suggestions = ["Great job logging your health data this week! Keep it up."]
+        
+        return jsonify({'success': True, 'stats': stats, 'suggestions': suggestions})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/api/profile', methods=['PUT'])
+def api_profile_update():
+    """Update editable profile fields."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+        body = request.get_json()
+
+        allowed = {
+            'displayName', 'dob', 'sex', 'height', 'weight',
+            'baseline', 'goals', 'reminders'
+        }
+        updates = {k: v for k, v in body.items() if k in allowed}
+        updates['updated_at'] = datetime.now(timezone.utc)
+
+        db.collection('users').document(uid).update(updates)
+        return jsonify({'success': True, 'message': 'Profile updated.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+# ─── REMINDERS API ────────────────────────────────────────────────────────
+
+@app.route('/api/reminders', methods=['GET'])
+def api_reminders_get():
+    """Get the student's reminder settings."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+        doc = db.collection('users').document(uid).get()
+        if not doc.exists:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        reminders = doc.to_dict().get('reminders', {})
+        # Provide defaults if not set
+        default_reminders = {
+            'morning_checkin': {'enabled': True},
+            'evening_mood_log': {'enabled': True},
+            'hydration_nudge': {'enabled': True},
+            'weekly_summary': {'enabled': True},
+        }
+        # Merge with user's settings
+        for key in default_reminders:
+            if key not in reminders:
+                reminders[key] = default_reminders[key]
+        
+        return jsonify({'success': True, 'reminders': reminders})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/api/reminders/update', methods=['POST'])
+def api_reminders_update():
+    """Update a specific reminder setting."""
+    try:
+        uid, _, _ = verify_token(request, allowed_roles=['student'])
+        body = request.get_json(silent=True) or {}
+        key = (body.get('key') or '').strip()
+        enabled = body.get('enabled')
+        
+        if not key:
+            return jsonify({'success': False, 'message': 'key is required'}), 400
+        if enabled is None:
+            return jsonify({'success': False, 'message': 'enabled is required'}), 400
+        
+        valid_keys = {'morning_checkin', 'evening_mood_log', 'hydration_nudge', 'weekly_summary'}
+        if key not in valid_keys:
+            return jsonify({'success': False, 'message': f'Invalid reminder key: {key}'}), 400
+        
+        # Get current reminders
+        doc = db.collection('users').document(uid).get()
+        reminders = doc.to_dict().get('reminders', {}) if doc.exists else {}
+        
+        # Update the specific reminder
+        if key not in reminders:
+            reminders[key] = {}
+        reminders[key]['enabled'] = enabled
+        
+        # Save back to database
+        db.collection('users').document(uid).set(
+            {'reminders': reminders, 'updated_at': datetime.now(timezone.utc)},
+            merge=True
+        )
+        
+        return jsonify({'success': True, 'message': f'Reminder {key} {"enabled" if enabled else "disabled"}'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 

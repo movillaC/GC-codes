@@ -6,13 +6,15 @@ Handles all counselor authentication, page routes, and API endpoints.
 All data is fetched from / written to Firebase Firestore.
 """
 from flask import Flask, request, jsonify, render_template, redirect
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from config import ConsultantConfig
 from db import (
     get_db, verify_token, get_user_role, user_exists, create_user,
     today_start, week_start,
 )
 from firebase_admin import auth as firebase_auth
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 # ─── APP INIT ─────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder='templates')
@@ -660,13 +662,14 @@ def api_risk_alerts_list():
                     student_email = s.get('email', '')
 
             alerts.append({
-                'id':            doc.id,
-                'student_uid':   student_uid,
-                'student_name':  student_name,
-                'student_email': student_email,
-                'level':         alert.get('level', 'low'),
-                'description':   alert.get('description', ''),
-                'created_at':    _ts(alert.get('created_at')),
+                'id':             doc.id,
+                'student_uid':    student_uid,
+                'student_name':   student_name,
+                'student_email':  student_email,
+                'level':          alert.get('level', 'low'),
+                'description':    alert.get('description', ''),
+                'created_at':     _ts(alert.get('created_at')),
+                'auto_generated': alert.get('auto_generated', False),  # fix: expose to UI
             })
 
         return _ok({'alerts': alerts})
@@ -845,6 +848,203 @@ def api_resource_delete(resource_id):
         return _ok({'message': 'Resource deleted'})
     except Exception as e:
         return _err(str(e))
+
+
+# ─── AUTOMATED RISK DETECTION (runs in background every 6 hours) ──────────
+
+def run_risk_checks():
+    """
+    Scans all students against the thresholds saved in Firestore
+    (settings/alert_thresholds). Fires automatically — no API call needed.
+    Results appear instantly in the counselor Risk Alerts UI via onSnapshot.
+    """
+    print(f'[Risk Check] Starting scan at {datetime.now(timezone.utc).isoformat()}')
+    try:
+        _db = get_db()
+
+        # Load thresholds — reads from system_config/config (same as admin server writes)
+        thresh_doc = _db.collection('system_config').document('config').get()
+        thresh     = thresh_doc.to_dict() if thresh_doc.exists else {}
+        sleep_min  = thresh.get('sleep_hours',    5)
+        stress_max = thresh.get('stress_level',   4)
+        mood_days  = thresh.get('mood_drop_days', 2)
+        act_days   = thresh.get('activity_days',  3)
+        combo_n    = thresh.get('combined_count', 3)
+
+        # Get all students
+        all_users = _db.collection('users').stream()
+        students  = [
+            {'uid': d.id, **d.to_dict()}
+            for d in all_users
+            if d.to_dict().get('role') == 'student'
+        ]
+
+        now      = datetime.now(timezone.utc)
+        week_ago = now - timedelta(days=7)
+        total_alerts = 0
+
+        for student in students:
+            uid      = student['uid']
+            user_ref = _db.collection('users').document(uid)
+
+            def recent(col, limit=7, _ref=user_ref):
+                return [
+                    d.to_dict()
+                    for d in _ref.collection(col)
+                                 .where('logged_at', '>=', week_ago)
+                                 .order_by('logged_at', direction='DESCENDING')
+                                 .limit(limit)
+                                 .stream()
+                ]
+
+            sleep_logs    = recent('sleep_records')
+            stress_logs   = recent('stress_records')
+            mood_logs     = recent('mood_records')
+            activity_logs = recent('activity_records')
+
+            low_count      = 0
+            alerts_to_fire = []
+
+            # Rule 1: Sleep Collapse
+            if sleep_logs:
+                latest_sleep = sleep_logs[0].get('hours', 99)
+                if latest_sleep < sleep_min:
+                    low_count += 1
+                    alerts_to_fire.append({
+                        'rule':        'Sleep Collapse',
+                        'level':       'medium',
+                        'description': f'Sleep dropped to {latest_sleep} hrs (threshold: {sleep_min} hrs)',
+                    })
+
+            # Rule 2: Stress Spike
+            if stress_logs:
+                latest_stress = stress_logs[0].get('level', 0)
+                if latest_stress >= stress_max:
+                    low_count += 1
+                    alerts_to_fire.append({
+                        'rule':        'Stress Level Spike',
+                        'level':       'high',
+                        'description': f'Stress reached {latest_stress}/5 (threshold: {stress_max}/5)',
+                    })
+
+            # Rule 3: Activity Withdrawal
+            days_inactive = 0
+            for i in range(act_days):
+                day_start_dt = now - timedelta(days=i + 1)
+                day_end_dt   = now - timedelta(days=i)
+                has_log = any(
+                    day_start_dt <= (
+                        a['logged_at']
+                        if isinstance(a['logged_at'], datetime)
+                        else a['logged_at'].replace(tzinfo=timezone.utc)
+                    ) < day_end_dt
+                    for a in activity_logs
+                    if 'logged_at' in a
+                )
+                if not has_log:
+                    days_inactive += 1
+
+            if days_inactive >= act_days:
+                low_count += 1
+                alerts_to_fire.append({
+                    'rule':        'Activity Withdrawal',
+                    'level':       'medium',
+                    'description': f'No activity logged for {days_inactive} consecutive days',
+                })
+
+            # Rule 4: Mood Drop Streak
+            mood_values = [
+                m.get('mood_score', m.get('level', 3))
+                for m in mood_logs[: mood_days + 1]
+            ]
+            if len(mood_values) >= 2 and all(
+                mood_values[i] < mood_values[i + 1]
+                for i in range(len(mood_values) - 1)
+            ):
+                low_count += 1
+                alerts_to_fire.append({
+                    'rule':        'Sudden Mood Drop',
+                    'level':       'high',
+                    'description': f'{mood_days}-day downward mood streak detected',
+                })
+
+            # Rule 5: Combined Low Indicators
+            if low_count >= combo_n:
+                alerts_to_fire.append({
+                    'rule':        'Combined Low Indicators',
+                    'level':       'high',
+                    'description': f'{low_count} health metrics simultaneously below threshold',
+                })
+
+            # Dedup: skip rules that already have an open alert for this student
+            existing_rules = {
+                d.to_dict().get('rule')
+                for d in _db.collection('risk_alerts')
+                             .where('student_uid', '==', uid)
+                             .where('resolved', '==', False)
+                             .stream()
+            }
+
+            for alert in alerts_to_fire:
+                if alert['rule'] in existing_rules:
+                    continue
+
+                _db.collection('risk_alerts').add({
+                    **alert,
+                    'student_uid':    uid,
+                    'student_name':   student.get('name', ''),
+                    'student_email':  student.get('email', ''),
+                    'resolved':       False,
+                    'auto_generated': True,
+                    'created_at':     datetime.now(timezone.utc),
+                })
+                total_alerts += 1
+
+        print(f'[Risk Check] Done — {len(students)} students scanned, {total_alerts} new alerts created')
+
+    except Exception as e:
+        print(f'[Risk Check] ERROR: {e}')
+
+
+# Start scheduler when Flask boots
+_scheduler = BackgroundScheduler(timezone='UTC')
+_scheduler.add_job(
+    func=run_risk_checks,
+    trigger='interval',
+    hours=6,            # change to minutes=1 for testing, back to hours=6 for production
+    id='risk_check',
+    replace_existing=True,
+    next_run_time=datetime.now(timezone.utc),   # also runs once immediately on startup
+)
+_scheduler.start()
+atexit.register(lambda: _scheduler.shutdown(wait=False))
+
+@app.route('/api/system/config', methods=['GET'])
+def api_counselor_config_get():
+    """Read alert thresholds — counselor-accessible mirror of admin system config."""
+    try:
+        verify_token(request, allowed_roles=['consultant', 'counselor'])
+        doc = db.collection('system_config').document('config').get()
+        return _ok({'config': doc.to_dict() if doc.exists else {}})
+    except Exception as e:
+        return _err(str(e))
+
+
+@app.route('/api/system/config', methods=['POST'])
+def api_counselor_config_update():
+    """Save alert thresholds — writes to system_config/config (same as admin server)."""
+    try:
+        verify_token(request, allowed_roles=['consultant', 'counselor'])
+        body = request.get_json(silent=True) or {}
+        allowed_keys = {'mood_drop_days', 'stress_level', 'sleep_hours', 'activity_days', 'combined_count'}
+        updates = {k: v for k, v in body.items() if k in allowed_keys}
+        if not updates:
+            return _err('No valid threshold fields provided')
+        db.collection('system_config').document('config').set(updates, merge=True)
+        return _ok({'message': 'Thresholds saved'})
+    except Exception as e:
+        return _err(str(e))
+
 
 # ─── ERROR HANDLERS ───────────────────────────────────────────────────────
 

@@ -6,33 +6,67 @@
 <title>Mood Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea; --text-primary: #1a1d23; --text-secondary: #5a6075; --green: #2db84b; --green-hover: #25a342; --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07); --sidebar-width: 220px; }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 32px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; overflow-y: auto; overflow-x: hidden; }
-  .sidebar::-webkit-scrollbar { width: 4px; }
-  .sidebar::-webkit-scrollbar-track { background: transparent; }
-  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-  .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
-  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px; flex-shrink: 0; }
-  .sidebar-scroll { flex: 1; overflow-y: auto; }
-  .sidebar-logo span { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; cursor: pointer; }
-  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
-  .nav-section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 24px 5px; }
-  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 11px 24px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s; user-select: none; }
+
+  /* ── Admin-style layout overrides ── */
+  :root {
+    --bg: #f0f4f8; --surface: #fff; --border: #e2e5ea;
+    --text-primary: #1a1d23; --text-secondary: #5a6075;
+    --green: #2db84b; --green-dark: #1e9238; --green-light: #e8f5e9;
+    --blue-bar: #2979ff; --radius: 8px; --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --sidebar-width: 220px;
+  }
+  /* Tighter sidebar */
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 24px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 8px; flex-shrink: 0; }
+  .sidebar-logo span { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .sidebar-logo small { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 18px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.12s; border-left: 3px solid transparent; cursor: pointer; }
+  .nav-item:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.18); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; padding: 12px 18px 4px; }
+  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 9px 18px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; user-select: none; transition: background 0.12s; }
   .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
-  .quick-log-arrow { font-size: 11px; transition: transform 0.2s; }
+  .quick-log-arrow { font-size: 10px; transition: transform 0.2s; }
   .quick-log-arrow.open { transform: rotate(180deg); }
   .quick-log-items { display: none; flex-direction: column; }
   .quick-log-items.open { display: flex; }
-  .quick-log-items .nav-item { padding: 9px 24px 9px 36px; font-size: 13px; }
-  .sidebar-bottom { flex-shrink:0; border-top: 1px solid rgba(255,255,255,0.2); padding: 8px 0 48px; }
-  .logout-btn { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 11px 24px; transition: color 0.15s, background 0.15s; width: 100%; font-family: 'DM Sans', sans-serif; border-left: 3px solid transparent; }
-  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
-  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px 36px; width: 100%; max-width: 700px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .quick-log-items .nav-item { padding: 7px 18px 7px 30px; font-size: 12px; }
+  .sidebar-bottom { flex-shrink: 0; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding: 6px 0 28px; }
+  .logout-btn { display: flex; align-items: center; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 9px 18px; width: 100%; font-family: inherit; border-left: 3px solid transparent; transition: background 0.12s; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
+  /* Tighter main — full width, no center, no large card */
+  .main { margin-left: var(--sidebar-width); flex: 1; padding: 16px 20px; }
+  /* Replace large centred card with a flat panel */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 16px;
+    box-shadow: var(--shadow); width: 100%; max-width: 680px;
+    position: relative; overflow: hidden;
+  }
+  /* Remove excessive card padding & centring */
+  .main.centred { display: flex; align-items: flex-start; justify-content: center; padding: 16px 20px; }
+  /* Page header */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .page-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+  .page-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  /* Watermark smaller */
+  .watermark { position: absolute; top: -20px; right: -20px; opacity: 0.08; pointer-events: none; }
+  .watermark svg { width: 140px; height: 140px; }
+  /* Panel (admin table wrapper style) */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+  .panel-header { padding: 7px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+  .panel-sub { font-size: 11px; color: var(--text-secondary); }
+  /* Toast */
+  .toast { position: fixed; bottom: 18px; right: 18px; background: #18181b; color: #fff; padding: 9px 13px; border-radius: 6px; font-size: 12px; font-weight: 500; transform: translateY(6px); opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 999; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 3px solid var(--green); }
+  :root { /* see shared vars above */ }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
+  .layout { display: flex; min-height: 100vh; }
+  /* sidebar css injected */
+  /* main injected */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; width: 100%; max-width: 700px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
   .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.15; pointer-events: none; z-index: 0; }
   .watermark svg { width: 220px; height: 220px; }
   .card-content { position: relative; z-index: 1; }
@@ -57,9 +91,8 @@
 </head>
 <body>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo"><span>Student Portal</span></div>
-    <div class="sidebar-scroll">
+    <aside class="sidebar">
+    <div class="sidebar-logo"><span>Student Portal</span><small>GCSW</small></div>
     <a class="nav-item" href="/dashboard">Dashboard</a>
     <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
     <a class="nav-item" href="/resource-library">Resource Library</a>
@@ -77,14 +110,14 @@
       <a class="nav-item" href="/activity-log">Activity Log</a>
       <a class="nav-item" href="/step-tracker">Steps Tracker</a>
     </div>
-    </div>
     <div class="sidebar-bottom">
+      <a class="nav-item" href="/profile">My Profile</a>
       <a class="nav-item" href="/about">About Us</a>
       <a class="nav-item" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
-  <div class="main">
+  <div class="main centred">
     <div class="card">
       <div class="watermark"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/><circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/><text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text></svg></div>
       <div class="card-content">
@@ -126,7 +159,7 @@
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
       const { auth } = await import('/static/firebase_config.js');
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js");
+      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
       await signOut(auth);
     } catch(e) {}
     window.location.href = '/login';

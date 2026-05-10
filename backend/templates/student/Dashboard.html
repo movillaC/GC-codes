@@ -3,288 +3,597 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Health Dashboard</title>
+<title>Dashboard — GCSW</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f0f2f5; --surface: #ffffff; --border: #e2e5ea;
+    --bg: #f0f4f8; --surface: #fff; --border: #e2e5ea;
     --text-primary: #1a1d23; --text-secondary: #5a6075;
-    --green: #2db84b; --green-hover: #25a342; --green-active: #1d8c38;
-    --green-dark: #1a7a32; --green-text: #ffffff;
-    --blue-bar: #2979ff; --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,0.07);
+    --green: #2db84b; --green-dark: #1e9238; --green-light: #e8f5e9;
+    --blue-bar: #2979ff; --radius: 8px; --shadow: 0 1px 3px rgba(0,0,0,0.06);
     --sidebar-width: 220px;
   }
-  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); }
-
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); }
   .layout { display: flex; min-height: 100vh; }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: var(--sidebar-width);
-    background: var(--blue-bar);
-    display: flex;
-    flex-direction: column;
-    padding: 32px 0 24px;
-    position: fixed;
-    top: 0; left: 0;
-    height: 100vh;
-    z-index: 10;
-  }
-  .sidebar-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
-  .sidebar::-webkit-scrollbar { width: 4px; }
-  .sidebar::-webkit-scrollbar-track { background: transparent; }
-  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-  .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
-
-  .sidebar-logo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 0 20px 28px;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    margin-bottom: 16px;
-  }
-
-  .sidebar-logo span {
-    font-size: 15px;
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: 0.04em;
-  }
-
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    transition: background 0.15s, color 0.15s;
-    border-left: 3px solid transparent;
-    cursor: pointer;
-  }
-  .nav-item:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .nav-item.active { background: rgba(255,255,255,0.2); color: #fff; border-left-color: #fff; }
-  .nav-section-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding: 16px 24px 6px;
-  }
-
-  .quick-log-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.85);
-    cursor: pointer;
-    border-left: 3px solid transparent;
-    transition: background 0.15s, color 0.15s;
-    user-select: none;
-  }
+  /* Sidebar */
+  .sidebar { width: var(--sidebar-width); background: var(--blue-bar); display: flex; flex-direction: column; padding: 24px 0 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
+  .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 8px; flex-shrink: 0; }
+  .sidebar-logo span { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.04em; }
+  .sidebar-logo small { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 18px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: background 0.12s; border-left: 3px solid transparent; cursor: pointer; }
+  .nav-item:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.18); color: #fff; border-left-color: #fff; }
+  .nav-section-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; padding: 12px 18px 4px; }
+  .quick-log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 9px 18px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; border-left: 3px solid transparent; user-select: none; transition: background 0.12s; }
   .quick-log-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
-
-  .quick-log-arrow {
-    font-size: 11px;
-    transition: transform 0.2s;
-  }
+  .quick-log-arrow { font-size: 10px; transition: transform 0.2s; }
   .quick-log-arrow.open { transform: rotate(180deg); }
-
-  .quick-log-items {
-    display: none;
-    flex-direction: column;
-  }
+  .quick-log-items { display: none; flex-direction: column; }
   .quick-log-items.open { display: flex; }
+  .quick-log-items .nav-item { padding: 7px 18px 7px 30px; font-size: 12px; }
+  .sidebar-bottom { flex-shrink: 0; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.2); padding: 6px 0 28px; }
+  .logout-btn { display: flex; align-items: center; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; background: none; border: none; padding: 9px 18px; width: 100%; font-family: inherit; border-left: 3px solid transparent; transition: background 0.12s; }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
 
-  .quick-log-items .nav-item {
-    padding: 10px 24px 10px 36px;
-    font-size: 13px;
-  }
+  /* Main */
+  .main { margin-left: var(--sidebar-width); flex: 1; padding: 16px 20px; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .page-title { font-size: 18px; font-weight: 600; }
+  .page-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
 
-  .sidebar-bottom {
-    margin-top: auto;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    padding-top: 8px;
-  }
+  /* FCM permission banner */
+  .banner { background: var(--green-light); border: 1px solid #a5d6a7; border-radius: var(--radius); padding: 9px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .banner.hidden { display: none; }
+  .banner-text { font-size: 12px; color: #2e7d32; line-height: 1.5; }
+  .banner-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .banner-btn { font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+  .banner-btn.primary { background: var(--green); color: #fff; }
+  .banner-btn.primary:hover { opacity: 0.85; }
+  .banner-btn.dismiss { background: none; color: #558b2f; padding: 5px 8px; }
 
-  .logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.85);
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 12px 24px;
-    transition: color 0.15s, background 0.15s;
-    width: 100%;
-    font-family: 'DM Sans', sans-serif;
-    border-left: 3px solid transparent;
-  }
-  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+  /* Stat strip */
+  .stat-strip { display: grid; grid-template-columns: repeat(6,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+  .stat-cell { background: var(--surface); padding: 10px 12px; }
+  .stat-label { font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+  .stat-hint { font-size: 10px; color: var(--text-secondary); margin-top: 3px; }
+  .stat-hint.ok { color: var(--green-dark); }
+  .stat-hint.warn { color: #b45309; }
+  .stat-hint.bad { color: #dc2626; }
 
-  /* MAIN CONTENT */
-  .main {
-    margin-left: var(--sidebar-width);
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
+  /* Layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .one-col { margin-bottom: 10px; }
 
-  .page-content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
+  /* Panel */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .panel-header { padding: 7px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+  .panel-sub { font-size: 11px; color: var(--text-secondary); }
+  .panel-body { padding: 10px 14px; }
 
-  .dashboard {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 40px 48px 36px;
-    width: 100%;
-    max-width: 780px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
+  /* Charts */
+  .chart-wrap { height: 110px; position: relative; }
 
-  .watermark { position: absolute; top: -30px; right: -30px; opacity: 0.15; pointer-events: none; z-index: 0; }
-  .watermark svg { width: 220px; height: 220px; }
-  .content-inner { position: relative; z-index: 1; }
+  /* Insights table */
+  .insight-table { width: 100%; border-collapse: collapse; }
+  .insight-table td { padding: 8px 12px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border); line-height: 1.5; vertical-align: top; }
+  .insight-table td:first-child { width: 22px; padding-right: 6px; }
+  .insight-table tr:last-child td { border-bottom: none; }
 
-  .cards-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .stat-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px 28px; }
-  .stat-card.transparent { background: transparent; border: 1.5px solid var(--border); }
-  .stat-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .stat-value { font-size: 26px; font-weight: 600; color: var(--text-primary); }
+  /* Goal table */
+  .goal-table { width: 100%; border-collapse: collapse; }
+  .goal-table tr { border-bottom: 1px solid var(--border); }
+  .goal-table tr:last-child { border-bottom: none; }
+  .goal-table td { padding: 8px 12px; font-size: 12px; color: var(--text-primary); vertical-align: middle; }
+  .goal-table td:first-child { width: 130px; color: var(--text-secondary); }
+  .goal-table td:last-child { width: 36px; text-align: right; color: var(--text-secondary); font-size: 11px; }
+  .bar-wrap { height: 4px; background: var(--border); border-radius: 2px; }
+  .bar-fill { height: 100%; border-radius: 2px; background: var(--green); }
 
+  /* Notification settings panel */
+  .notif-table { width: 100%; border-collapse: collapse; }
+  .notif-table tr { border-bottom: 1px solid var(--border); }
+  .notif-table tr:last-child { border-bottom: none; }
+  .notif-table td { padding: 9px 12px; font-size: 12px; vertical-align: middle; }
+  .notif-table td:first-child { color: var(--text-primary); font-weight: 500; }
+  .notif-table td:nth-child(2) { color: var(--text-secondary); font-size: 11px; }
+  .notif-table td:last-child { width: 44px; text-align: right; }
+  .toggle { position: relative; width: 34px; height: 19px; display: inline-block; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track { position: absolute; inset: 0; border-radius: 10px; background: #d1d5db; cursor: pointer; transition: background 0.2s; }
+  .toggle input:checked + .toggle-track { background: var(--green); }
+  .toggle-thumb { position: absolute; top: 2.5px; left: 2.5px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s; pointer-events: none; }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(15px); }
+  .notif-status { font-size: 11px; color: var(--text-secondary); padding: 8px 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+  .notif-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
+  .notif-dot.granted { background: var(--green); }
+  .notif-dot.denied  { background: #dc2626; }
 
+  /* Toast */
+  #toastEl { position: fixed; bottom: 20px; right: 20px; background: #18181b; color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; transform: translateY(8px); opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 999; }
+  #toastEl.show { transform: translateY(0); opacity: 1; }
+  #toastEl.success { border-left: 3px solid var(--green); }
 </style>
 </head>
 <body>
-
 <div class="layout">
-
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span>Student Portal</span>
-    </div>
-
-    <div class="sidebar-scroll">
-    <a class="nav-item active" href="/dashboard">Dashboard</a>
+    <div class="sidebar-logo"><span>Student Portal</span><small>GCSW</small></div>
+    <a class="nav-item" href="/dashboard">Dashboard</a>
     <a class="nav-item" href="/weekly-summary">Weekly Summary</a>
     <a class="nav-item" href="/resource-library">Resource Library</a>
     <a class="nav-item" href="/counseling">Counseling</a>
-
-    <div class="nav-section-label">Features</div>
-    <div class="quick-log-toggle" onclick="toggleQuickLog()">
-      Quick Log <span class="quick-log-arrow" id="quickArrow">▼</span>
-    </div>
+    <div class="nav-section-label">Quick Log</div>
+    <div class="quick-log-toggle" onclick="toggleQuickLog()">Log a metric <span class="quick-log-arrow" id="quickArrow">&#9660;</span></div>
     <div class="quick-log-items" id="quickLogItems">
-      <a class="nav-item" href="/mood-tracker">Log Mood</a>
-      <a class="nav-item" href="/stress-note">Stress Note</a>
-      <a class="nav-item" href="/water-intake">Water Intake</a>
-      <a class="nav-item" href="/sleep-tracker">Sleep Tracker</a>
+      <a class="nav-item" href="/mood-tracker">Mood</a>
+      <a class="nav-item" href="/stress-note">Stress</a>
+      <a class="nav-item" href="/water-intake">Water</a>
+      <a class="nav-item" href="/sleep-tracker">Sleep</a>
       <a class="nav-item" href="/ai-chat">AI Chat</a>
-      <a class="nav-item" href="/activity-log">Activity Log</a>
-      <a class="nav-item" href="/step-tracker">Steps Tracker</a>
+      <a class="nav-item" href="/activity-log">Activity</a>
+      <a class="nav-item" href="/step-tracker">Steps</a>
     </div>
-    </div>
-
     <div class="sidebar-bottom">
+      <a class="nav-item" href="/profile">My Profile</a>
       <a class="nav-item" href="/about">About Us</a>
       <a class="nav-item" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
-    <div class="page-content">
-      <div class="dashboard">
-        <div class="watermark">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="100" cy="100" r="95" fill="none" stroke="#2db84b" stroke-width="12"/>
-            <circle cx="100" cy="100" r="80" fill="none" stroke="#f5d600" stroke-width="8"/>
-            <text x="100" y="115" text-anchor="middle" font-size="52" font-weight="700" font-family="sans-serif" fill="#1a1d23">GCSW</text>
-          </svg>
-        </div>
 
-        <div class="content-inner">
-          <div class="cards-grid">
-            <div class="stat-card"><div class="stat-label">Mood</div><div class="stat-value" id="moodVal">--</div></div>
-            <div class="stat-card"><div class="stat-label">Sleep</div><div class="stat-value" id="sleepVal">0 Hrs</div></div>
-            <div class="stat-card transparent"><div class="stat-label">Activity</div><div class="stat-value" id="activityVal">0 mins</div></div>
-            <div class="stat-card"><div class="stat-label">Water</div><div class="stat-value" id="waterVal">0 Liters</div></div>
-            <div class="stat-card"><div class="stat-label">Stress</div><div class="stat-value" id="stressVal">None</div></div>
-            <div class="stat-card transparent"><div class="stat-label">Steps</div><div class="stat-value" id="stepsVal">0</div></div>
-          </div>
-        </div>
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub" id="pageDate"></div>
+      </div>
+    </div>
+
+    <!-- FCM permission banner — shown once if permission not yet granted -->
+    <div class="banner hidden" id="fcmBanner">
+      <div class="banner-text">
+        Enable push notifications to get reminders when you haven't logged yet, and alerts from your counselor.
+      </div>
+      <div class="banner-actions">
+        <button class="banner-btn primary" id="fcmEnableBtn" onclick="requestFCMPermission()">Enable notifications</button>
+        <button class="banner-btn dismiss" onclick="dismissFCMBanner()">Not now</button>
+      </div>
+    </div>
+
+    <!-- Stat strip -->
+    <div class="stat-strip">
+      <div class="stat-cell"><div class="stat-label">Mood</div><div class="stat-value" id="sv_mood">--</div><div class="stat-hint" id="sh_mood"></div></div>
+      <div class="stat-cell"><div class="stat-label">Sleep</div><div class="stat-value" id="sv_sleep">--</div><div class="stat-hint" id="sh_sleep"></div></div>
+      <div class="stat-cell"><div class="stat-label">Water</div><div class="stat-value" id="sv_water">--</div><div class="stat-hint" id="sh_water"></div></div>
+      <div class="stat-cell"><div class="stat-label">Stress</div><div class="stat-value" id="sv_stress">--</div><div class="stat-hint" id="sh_stress"></div></div>
+      <div class="stat-cell"><div class="stat-label">Activity</div><div class="stat-value" id="sv_activity">--</div><div class="stat-hint" id="sh_activity"></div></div>
+      <div class="stat-cell"><div class="stat-label">Steps</div><div class="stat-value" id="sv_steps">--</div><div class="stat-hint"></div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Mood &amp; Stress</div><div class="panel-sub">7-day · dashed = baseline</div></div>
+        <div class="panel-body"><div class="chart-wrap"><canvas id="moodChart"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Sleep</div><div class="panel-sub">Hours/night · dashed = baseline</div></div>
+        <div class="panel-body"><div class="chart-wrap"><canvas id="sleepChart"></canvas></div></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Water Intake</div><div class="panel-sub">Litres/day · dashed = baseline</div></div>
+        <div class="panel-body"><div class="chart-wrap"><canvas id="waterChart"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Activity &amp; Steps</div><div class="panel-sub">Mins active / Steps ÷ 100</div></div>
+        <div class="panel-body"><div class="chart-wrap"><canvas id="activityChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- Insights + Goals -->
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Personalised Insights</div><div class="panel-sub" id="insightBased">vs your baseline</div></div>
+        <table class="insight-table" id="insightTable"><tr><td>&#8987;</td><td>Loading…</td></tr></table>
+      </div>
+      <div class="panel" id="goalsPanel" style="display:none">
+        <div class="panel-header"><div class="panel-title">Goal Progress</div><div class="panel-sub">This week</div></div>
+        <table class="goal-table" id="goalTable"></table>
+      </div>
+    </div>
+
+    <!-- Push Notification Settings -->
+    <div class="panel one-col" style="margin-top:14px">
+      <div class="panel-header">
+        <div class="panel-title">Push Notification Settings</div>
+        <div class="panel-sub">Browser push &amp; email reminders</div>
+      </div>
+      <table class="notif-table">
+        <tr>
+          <td>Morning Check-in</td>
+          <td>8:00 AM daily — prompts your daily log</td>
+          <td><label class="toggle"><input type="checkbox" id="tog_morning" onchange="saveReminder('morning_checkin',this.checked)"><span class="toggle-track"></span><span class="toggle-thumb"></span></label></td>
+        </tr>
+        <tr>
+          <td>Evening Mood Log</td>
+          <td>9:00 PM daily — mood &amp; stress prompt</td>
+          <td><label class="toggle"><input type="checkbox" id="tog_evening" onchange="saveReminder('evening_mood_log',this.checked)"><span class="toggle-track"></span><span class="toggle-thumb"></span></label></td>
+        </tr>
+        <tr>
+          <td>Hydration Nudge</td>
+          <td>10 AM &amp; 2 PM — water intake reminder</td>
+          <td><label class="toggle"><input type="checkbox" id="tog_hydration" onchange="saveReminder('hydration_nudge',this.checked)"><span class="toggle-track"></span><span class="toggle-thumb"></span></label></td>
+        </tr>
+        <tr>
+          <td>Weekly Summary</td>
+          <td>Sunday 10 AM — wellness report &amp; suggestions</td>
+          <td><label class="toggle"><input type="checkbox" id="tog_weekly" onchange="saveReminder('weekly_summary',this.checked)"><span class="toggle-track"></span><span class="toggle-thumb"></span></label></td>
+        </tr>
+      </table>
+      <div class="notif-status">
+        <span class="notif-dot" id="notifDot"></span>
+        <span id="notifStatusText">Checking notification permission…</span>
       </div>
     </div>
 
   </div>
-
 </div>
+<div id="toastEl"></div>
 
 <script type="module">
   import { auth } from '/static/firebase_config.js';
-  import { signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
-  // Toggle Quick Log
-  window.toggleQuickLog = function() {
-    const items = document.getElementById('quickLogItems');
-    const arrow = document.getElementById('quickArrow');
-    items.classList.toggle('open');
-    arrow.classList.toggle('open');
+  // ── Replace with your VAPID key from Firebase Console → Project Settings → Cloud Messaging ──
+  const VAPID_KEY = '1092609196334';
+
+  // Nav
+  window.toggleQuickLog = () => {
+    document.getElementById('quickLogItems').classList.toggle('open');
+    document.getElementById('quickArrow').classList.toggle('open');
+  };
+  document.querySelectorAll('.nav-item[href]').forEach(el => {
+    if (el.getAttribute('href') === location.pathname) el.classList.add('active');
+  });
+  document.getElementById('logoutBtn').addEventListener('click', async () => { await signOut(auth); location.href = '/login'; });
+  document.getElementById('pageDate').textContent = new Date().toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Toast
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toastEl');
+    el.textContent = msg; el.className = 'show ' + type;
+    setTimeout(() => el.className = '', 2800);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // FCM — Push Notifications
+  // ══════════════════════════════════════════════════════════════════════
+
+  let _messaging = null;
+  let _authToken  = null;
+
+  function updateNotifStatus() {
+    const dot  = document.getElementById('notifDot');
+    const text = document.getElementById('notifStatusText');
+    const perm = Notification.permission;
+    if (perm === 'granted') {
+      dot.className  = 'notif-dot granted';
+      text.textContent = 'Push notifications are enabled on this device.';
+    } else if (perm === 'denied') {
+      dot.className  = 'notif-dot denied';
+      text.textContent = 'Notifications blocked. Enable them in your browser settings to receive push reminders.';
+    } else {
+      dot.className  = 'notif-dot';
+      text.textContent = 'Push notifications not yet enabled. Click "Enable notifications" above to turn them on.';
+    }
+  }
+
+  async function setupFCM(app, token) {
+    _authToken = token;
+    updateNotifStatus();
+
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+
+    // Show banner if permission not decided yet
+    if (Notification.permission === 'default') {
+      const dismissed = sessionStorage.getItem('fcm_dismissed');
+      if (!dismissed) document.getElementById('fcmBanner').classList.remove('hidden');
+      return;
+    }
+
+    // Already granted — silently register and get token
+    if (Notification.permission === 'granted') {
+      await registerAndSaveToken(app, token);
+    }
+  }
+
+  async function registerAndSaveToken(app, authToken) {
+    try {
+      const swReg = await navigator.serviceWorker.register('/static/firebase-messaging-sw.js');
+      _messaging  = getMessaging(app);
+
+      const fcmToken = await getToken(_messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+      if (!fcmToken) return;
+
+      // Save token to backend (stored in Firestore users/{uid}.fcm_token)
+      await fetch('/api/fcm-token', {
+        method:  'POST',
+        headers: { Authorization: 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ token: fcmToken }),
+      });
+
+      // Handle foreground messages (tab is open)
+      onMessage(_messaging, payload => {
+        const title = payload.notification?.title || 'GCSW Reminder';
+        const body  = payload.notification?.body  || '';
+        toast(title + (body ? ' — ' + body : ''), 'success');
+      });
+
+      updateNotifStatus();
+    } catch (err) {
+      console.warn('FCM setup error:', err);
+    }
+  }
+
+  // Called by "Enable notifications" button
+  window.requestFCMPermission = async function() {
+    const btn = document.getElementById('fcmEnableBtn');
+    btn.textContent = 'Requesting…'; btn.disabled = true;
+    try {
+      const permission = await Notification.requestPermission();
+      updateNotifStatus();
+      if (permission === 'granted') {
+        document.getElementById('fcmBanner').classList.add('hidden');
+        // Dynamically import app to pass to registerAndSaveToken
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+        await registerAndSaveToken(auth.app, _authToken);
+        toast('Push notifications enabled!', 'success');
+      } else {
+        document.getElementById('fcmBanner').classList.add('hidden');
+        sessionStorage.setItem('fcm_dismissed', '1');
+      }
+    } catch (err) {
+      console.warn('Permission request failed:', err);
+    } finally {
+      btn.textContent = 'Enable notifications'; btn.disabled = false;
+    }
   };
 
-  auth.onAuthStateChanged(async user => {
-    if (!user) { window.location.href = '/login'; return; }
+  window.dismissFCMBanner = function() {
+    document.getElementById('fcmBanner').classList.add('hidden');
+    sessionStorage.setItem('fcm_dismissed', '1');
+  };
+
+  // ══════════════════════════════════════════════════════════════════════
+  // Reminder toggles (email + push via backend)
+  // ══════════════════════════════════════════════════════════════════════
+  window.saveReminder = async function(key, enabled) {
     try {
-      const token = await user.getIdToken();
-      const res = await fetch('/api/summary/today', {
-        headers: { 'Authorization': 'Bearer ' + token }
+      const token = await auth.currentUser.getIdToken();
+      const res   = await fetch('/api/reminders/update', {
+        method:  'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ key, enabled }),
       });
-      const data = await res.json();
-      if (data.success) {
-        const s = data.summary;
-        document.getElementById('moodVal').textContent     = s.mood || '--';
-        document.getElementById('sleepVal').textContent    = s.sleep || '0 hrs';
-        document.getElementById('waterVal').textContent    = s.water_liters + ' Liters';
-        document.getElementById('stressVal').textContent   = s.stress || 'None';
-        document.getElementById('activityVal').textContent = s.activity_mins + ' mins';
-        document.getElementById('stepsVal').textContent    = s.steps.toLocaleString();
+      const d = await res.json();
+      if (!d.success) throw new Error(d.message);
+      toast(enabled ? 'Reminder enabled' : 'Reminder disabled');
+    } catch (e) { toast('Failed: ' + e.message); }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════
+  // Chart + data helpers (unchanged)
+  // ══════════════════════════════════════════════════════════════════════
+  const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  function getWeekDates() {
+    const today = new Date(), mon = new Date(today);
+    mon.setDate(today.getDate() - ((today.getDay()+6)%7));
+    return Array.from({length:7}, (_,i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d.toISOString().split('T')[0]; });
+  }
+  function toDS(v) { if (!v) return ''; return new Date(v).toISOString().split('T')[0]; }
+  function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+
+  const cOpts = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:true, position:'bottom', labels:{ font:{size:10,family:'DM Sans'}, boxWidth:8, padding:6 } } },
+    scales:{
+      x:{ ticks:{font:{size:10,family:'DM Sans'}}, grid:{display:false} },
+      y:{ ticks:{font:{size:10,family:'DM Sans'}}, grid:{color:'#f0f0f0'} }
+    }
+  };
+  function dLine(val, label, color) {
+    return { label, data:Array(7).fill(val), borderColor:color, borderDash:[4,3], borderWidth:1.2, pointRadius:0, fill:false };
+  }
+  let charts = {};
+  function buildCharts(s, wd, b) {
+    Object.values(charts).forEach(c=>c.destroy()); charts = {};
+    const md  = wd.map(ds=>{const r=s.mood?.find(m=>toDS(m.logged_at)===ds);return r?Number(r.mood_score??r.level??3):null;});
+    const sd  = wd.map(ds=>{const r=s.stress?.find(x=>toDS(x.logged_at)===ds);return r?Number(r.stress_score??r.level??0):null;});
+    const sld = wd.map(ds=>{const r=s.sleep?.find(x=>toDS(x.logged_at)===ds);return r?(parseFloat(r.hours??r.total)||null):null;});
+    const wd2 = wd.map(ds=>{const rr=s.water?.filter(x=>toDS(x.logged_at)===ds)||[];return rr.length?+(rr.reduce((a,r)=>a+(r.amount_ml||0),0)/1000).toFixed(2):null;});
+    const ad  = wd.map(ds=>{const rr=s.activity?.filter(x=>toDS(x.logged_at)===ds)||[];return rr.length?rr.reduce((a,r)=>a+(r.duration_mins||0),0):null;});
+    const std = wd.map(ds=>{const rr=s.steps?.filter(x=>toDS(x.logged_at)===ds)||[];return rr.length?+(rr.reduce((a,r)=>a+(r.steps||0),0)/100).toFixed(1):null;});
+
+    const mds = [{label:'Mood',data:md,borderColor:'#2db84b',backgroundColor:'rgba(45,184,75,0.06)',tension:0.3,spanGaps:true,pointRadius:3},{label:'Stress',data:sd,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.06)',tension:0.3,spanGaps:true,pointRadius:3}];
+    if (b.stress_level) mds.push(dLine(b.stress_level,'Stress base','#f59e0b'));
+    charts.mood = new Chart(document.getElementById('moodChart'),{type:'line',data:{labels:DAY_LABELS,datasets:mds},options:{...cOpts,scales:{...cOpts.scales,y:{...cOpts.scales.y,min:0,max:5}}}});
+
+    const slDs = [{label:'Sleep hrs',data:sld,borderColor:'#2979ff',backgroundColor:'rgba(41,121,255,0.06)',tension:0.3,spanGaps:true,pointRadius:3}];
+    if (b.sleep_hours) slDs.push(dLine(b.sleep_hours,'Baseline','#2979ff'));
+    charts.sleep = new Chart(document.getElementById('sleepChart'),{type:'line',data:{labels:DAY_LABELS,datasets:slDs},options:{...cOpts,scales:{...cOpts.scales,y:{...cOpts.scales.y,min:0,max:12}}}});
+
+    const wDs = [{label:'Litres',data:wd2,backgroundColor:'rgba(41,121,255,0.55)',borderRadius:3}];
+    if (b.water_glasses) wDs.push(dLine(+(b.water_glasses*0.25).toFixed(2),'Baseline','#2979ff'));
+    charts.water = new Chart(document.getElementById('waterChart'),{type:'bar',data:{labels:DAY_LABELS,datasets:wDs},options:{...cOpts,scales:{...cOpts.scales,y:{...cOpts.scales.y,beginAtZero:true}}}});
+
+    charts.activity = new Chart(document.getElementById('activityChart'),{type:'bar',data:{labels:DAY_LABELS,datasets:[{label:'Mins',data:ad,backgroundColor:'rgba(45,184,75,0.65)',borderRadius:3},{label:'Steps÷100',data:std,backgroundColor:'rgba(245,158,11,0.55)',borderRadius:3}]},options:{...cOpts,scales:{...cOpts.scales,y:{...cOpts.scales.y,beginAtZero:true}}}});
+  }
+
+  function buildInsights(s, wd, profile) {
+    const b = profile?.baseline||{}, goals = profile?.goals||[];
+    const rows = [];
+    const sleepVals = wd.map(ds=>{const r=s.sleep?.find(x=>toDS(x.logged_at)===ds);return r?(parseFloat(r.hours??r.total)||null):null;}).filter(v=>v!==null);
+    const sleepAvg = avg(sleepVals), sleepBase = b.sleep_hours||7;
+    if (sleepAvg!==null) rows.push({icon: sleepAvg>=sleepBase-0.5?'😴':'⚠️', text: sleepAvg>=sleepBase-0.5?`Avg sleep <strong>${sleepAvg.toFixed(1)} hrs</strong> — on track (baseline ${sleepBase} hrs).`:`Avg sleep <strong>${sleepAvg.toFixed(1)} hrs</strong>, ${(sleepBase-sleepAvg).toFixed(1)} hrs below your ${sleepBase} hr baseline.`});
+    else rows.push({icon:'💤',text:`No sleep logged. Baseline: <strong>${sleepBase} hrs/night</strong>.`});
+
+    const stressVals = wd.map(ds=>{const r=s.stress?.find(x=>toDS(x.logged_at)===ds);return r?(Number(r.stress_score??r.level??0)||null):null;}).filter(v=>v!==null);
+    const stressAvg = avg(stressVals), stressBase = b.stress_level||3;
+    if (stressAvg!==null) rows.push({icon:stressAvg<=stressBase?'🧘':'😟',text:stressAvg<=stressBase?`Stress avg <strong>${stressAvg.toFixed(1)}/5</strong> — within baseline.`:`Stress avg <strong>${stressAvg.toFixed(1)}/5</strong>, above your usual ${stressBase}/5. Check resource library.`});
+
+    const waterDays = wd.filter(ds=>(s.water?.filter(w=>toDS(w.logged_at)===ds)||[]).some(r=>r.amount_ml>0));
+    const waterBaseL = +((b.water_glasses||8)*0.25).toFixed(2);
+    const waterAvgL  = waterDays.length ? avg(waterDays.map(ds=>{const rr=s.water?.filter(w=>toDS(w.logged_at)===ds)||[];return +(rr.reduce((a,r)=>a+(r.amount_ml||0),0)/1000).toFixed(2);})) : null;
+    if (waterAvgL!==null) rows.push({icon:'💧',text:waterAvgL>=waterBaseL*0.85?`Water avg <strong>${waterAvgL.toFixed(1)} L/day</strong> — good hydration.`:`Water avg <strong>${waterAvgL.toFixed(1)} L</strong> on logged days, below goal of ${waterBaseL} L.`});
+
+    const activeDays = wd.filter(ds=>(s.activity?.filter(a=>toDS(a.logged_at)===ds)||[]).length>0).length;
+    const actTarget  = {Sedentary:1,'Lightly active':2,'Moderately active':3,'Very active':5}[b.activity_level]||3;
+    rows.push({icon:activeDays>=actTarget?'🏃':'🏃',text:activeDays>=actTarget?`Active <strong>${activeDays}/7 days</strong> — on target!`:`Active <strong>${activeDays}/7 days</strong>. Aim for ${actTarget} days (${b.activity_level||'Moderately active'} goal).`});
+
+    const loggedDays = wd.filter(ds=>[s.mood,s.sleep,s.stress].some(arr=>arr?.find(r=>toDS(r.logged_at)===ds))).length;
+    rows.push({icon:loggedDays===7?'🔥':loggedDays<3?'📋':'📅',text:`Check-in streak: <strong>${loggedDays}/7 days</strong> this week.`});
+
+    document.getElementById('insightTable').innerHTML = rows.map(r=>`<tr><td>${r.icon}</td><td>${r.text}</td></tr>`).join('');
+    if (b.sleep_hours||b.stress_level) document.getElementById('insightBased').textContent = `vs your baseline · ${goals.length} goal${goals.length!==1?'s':''}`;
+  }
+
+  function buildGoals(s, wd, profile) {
+    const goals = profile?.goals||[], b = profile?.baseline||{};
+    if (!goals.length) return;
+    const gm = {
+      'Sleep better':    ()=>{ const v=avg(wd.map(ds=>{const r=s.sleep?.find(x=>toDS(x.logged_at)===ds);return r?(parseFloat(r.hours??r.total)||null):null;}).filter(v=>v!==null)); return v?Math.min(100,Math.round((v/(b.sleep_hours||7))*100)):0; },
+      'Manage stress':   ()=>{ const v=avg(wd.map(ds=>{const r=s.stress?.find(x=>toDS(x.logged_at)===ds);return r?(Number(r.stress_score??r.level??0)||null):null;}).filter(v=>v!==null)); return v?Math.min(100,Math.round(((5-v)/4)*100)):0; },
+      'Stay hydrated':   ()=>Math.round((wd.filter(ds=>(s.water?.filter(w=>toDS(w.logged_at)===ds)||[]).some(r=>r.amount_ml>0)).length/7)*100),
+      'Be more active':  ()=>{ const a=wd.filter(ds=>(s.activity?.filter(x=>toDS(x.logged_at)===ds)||[]).length>0).length; const t={Sedentary:1,'Lightly active':2,'Moderately active':3,'Very active':5}[b.activity_level]||3; return Math.min(100,Math.round((a/t)*100)); },
+      'Improve mood':    ()=>{ const v=avg(wd.map(ds=>{const r=s.mood?.find(x=>toDS(x.logged_at)===ds);return r?(Number(r.mood_score??r.level??3)||null):null;}).filter(v=>v!==null)); return v?Math.min(100,Math.round((v/5)*100)):0; },
+      'Eat healthier':   ()=>({Poor:25,Fair:50,Good:75,'Very good':100}[b.diet_quality]||50),
+    };
+    const rows = goals.filter(g=>gm[g]).map(g=>{
+      const pct=gm[g](), color=pct>=80?'#2db84b':pct>=50?'#f59e0b':'#ef4444';
+      return `<tr><td>${g}</td><td><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div></td><td>${pct}%</td></tr>`;
+    }).join('');
+    if (rows) { document.getElementById('goalTable').innerHTML = rows; document.getElementById('goalsPanel').style.display='block'; }
+  }
+
+  function hint(id, current, target, unit='', higherIsBetter=true) {
+    const el = document.getElementById(id); if (!el||target==null||current==null) return;
+    const pct = higherIsBetter ? Math.min(100,Math.round((current/target)*100)) : Math.min(100,Math.round(((target-current+target)/target)*100));
+    el.textContent = `${pct}% of target (${target}${unit})`;
+    el.className = 'stat-hint ' + (pct>=90?'ok':pct>=60?'warn':'bad');
+  }
+
+  // ── Main ──────────────────────────────────────────────────────────────
+  let _token = null;
+  let _profile = null;
+  let _refreshInterval = null;
+
+  // Refresh function called every 20 seconds
+  async function refreshDashboard() {
+    if (!_token) return;
+    const wd = getWeekDates();
+    const b = _profile?.baseline || {};
+
+    // Refresh today's stats
+    try {
+      const r = await fetch('/api/summary/today', { headers:{ Authorization:'Bearer '+_token } });
+      const d = await r.json();
+      if (d.success) {
+        const s=d.summary;
+        document.getElementById('sv_mood').textContent     = s.mood||'--';
+        document.getElementById('sv_sleep').textContent    = s.sleep||'--';
+        document.getElementById('sv_water').textContent    = s.water_liters+'L';
+        document.getElementById('sv_stress').textContent   = s.stress||'--';
+        document.getElementById('sv_activity').textContent = s.activity_mins+'m';
+        document.getElementById('sv_steps').textContent    = Number(s.steps).toLocaleString();
+        if (b.sleep_hours)   hint('sh_sleep',   parseFloat(s.sleep)||0, b.sleep_hours,   'h');
+        if (b.water_glasses) hint('sh_water',   s.water_liters,         +(b.water_glasses*0.25).toFixed(1), 'L');
+        if (b.stress_level)  { const el=document.getElementById('sh_stress');  if(el){el.textContent=`Baseline: ${b.stress_level}/5`;el.className='stat-hint';} }
+        if (b.activity_level){ const el=document.getElementById('sh_activity'); if(el){el.textContent=b.activity_level;el.className='stat-hint';} }
       }
-    } catch (err) { console.error('Failed to load summary', err); }
-  });
+    } catch(_){}
 
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await signOut(auth);
-    window.location.href = '/login';
-  });
+    // Refresh weekly charts and insights
+    try {
+      const r = await fetch('/api/summary/weekly', { headers:{ Authorization:'Bearer '+_token } });
+      const d = await r.json();
+      if (d.success) {
+        buildCharts(d.summary, wd, b);
+        buildInsights(d.summary, wd, _profile);
+        buildGoals(d.summary, wd, _profile);
+      }
+    } catch(_){}
+  }
 
-  // Highlight active nav item
-  const path = window.location.pathname;
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('active');
-    if (item.getAttribute('href') === path) item.classList.add('active');
+  auth.onAuthStateChanged(async user => {
+    if (!user) { location.href='/login'; return; }
+    _token = await user.getIdToken();
+    const wd = getWeekDates();
+
+    // Setup FCM (show banner or silently register if already granted)
+    await setupFCM(auth.app, _token);
+
+    try {
+      const r = await fetch('/api/profile', { headers:{ Authorization:'Bearer '+_token } });
+      const d = await r.json();
+      if (d.success) _profile = d.profile;
+    } catch(_){}
+    const b = _profile?.baseline||{};
+
+    // Reminder toggles
+    try {
+      const r   = await fetch('/api/reminders', { headers:{ Authorization:'Bearer '+_token } });
+      const d   = await r.json();
+      if (d.success) {
+        const rem = d.reminders||{};
+        document.getElementById('tog_morning').checked   = rem.morning_checkin?.enabled  !== false;
+        document.getElementById('tog_evening').checked   = rem.evening_mood_log?.enabled !== false;
+        document.getElementById('tog_hydration').checked = rem.hydration_nudge?.enabled  !== false;
+        document.getElementById('tog_weekly').checked    = rem.weekly_summary?.enabled   !== false;
+      }
+    } catch(_){}
+
+    // Today summary
+    try {
+      const r = await fetch('/api/summary/today', { headers:{ Authorization:'Bearer '+_token } });
+      const d = await r.json();
+      if (d.success) {
+        const s=d.summary;
+        document.getElementById('sv_mood').textContent     = s.mood||'--';
+        document.getElementById('sv_sleep').textContent    = s.sleep||'--';
+        document.getElementById('sv_water').textContent    = s.water_liters+'L';
+        document.getElementById('sv_stress').textContent   = s.stress||'--';
+        document.getElementById('sv_activity').textContent = s.activity_mins+'m';
+        document.getElementById('sv_steps').textContent    = Number(s.steps).toLocaleString();
+        if (b.sleep_hours)   hint('sh_sleep',   parseFloat(s.sleep)||0, b.sleep_hours,   'h');
+        if (b.water_glasses) hint('sh_water',   s.water_liters,         +(b.water_glasses*0.25).toFixed(1), 'L');
+        if (b.stress_level)  { const el=document.getElementById('sh_stress');  if(el){el.textContent=`Baseline: ${b.stress_level}/5`;el.className='stat-hint';} }
+        if (b.activity_level){ const el=document.getElementById('sh_activity'); if(el){el.textContent=b.activity_level;el.className='stat-hint';} }
+      }
+    } catch(_){}
+
+    // Weekly data
+    try {
+      const r = await fetch('/api/summary/weekly', { headers:{ Authorization:'Bearer '+_token } });
+      const d = await r.json();
+      if (d.success) {
+        buildCharts(d.summary, wd, b);
+        buildInsights(d.summary, wd, _profile);
+        buildGoals(d.summary, wd, _profile);
+      }
+    } catch(_){}
+
+    // Start auto-refresh every 20 seconds for real-time updates
+    if (_refreshInterval) clearInterval(_refreshInterval);
+    _refreshInterval = setInterval(refreshDashboard, 20000);
   });
 </script>
 </body>

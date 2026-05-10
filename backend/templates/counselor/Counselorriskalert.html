@@ -6,209 +6,340 @@
 <title>Risk Alerts — Counselor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg:#f5f0ff; --surface:#ffffff; --border:#e2d9f3; --text-primary:#1a1d23; --text-secondary:#5a6075; --purple:#7c3aed; --purple-hover:#6d28d9; --purple-light:#ede9fe; --radius:10px; --shadow:0 1px 4px rgba(0,0,0,0.07); --sidebar-width:240px; }
-  html, body { height:100%; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); }
-  .layout { display:flex; min-height:100vh; }
-  .sidebar { width:var(--sidebar-width); background:var(--purple); display:flex; flex-direction:column; padding:32px 0 0; position:fixed; top:0; left:0; height:100vh; z-index:10; }
-  .sidebar-logo { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 20px 24px; border-bottom:1px solid rgba(255,255,255,0.2); margin-bottom:12px; flex-shrink:0; }
-  .sidebar-logo span { font-size:15px; font-weight:600; color:#fff; letter-spacing:0.04em; }
-  .sidebar-logo small { font-size:12px; color:rgba(255,255,255,0.6); }
-  .sidebar-main { flex:1; overflow:hidden; }
-  .nav-item { display:flex; align-items:center; gap:12px; padding:11px 24px; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); text-decoration:none; transition:background 0.15s,color 0.15s; border-left:3px solid transparent; }
-  .nav-item:hover { background:rgba(255,255,255,0.15); color:#fff; }
-  .nav-item.active { background:rgba(255,255,255,0.2); color:#fff; border-left-color:#fff; }
-  .nav-section-label { font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; padding:14px 24px 5px; }
-  .sidebar-bottom { flex-shrink:0; border-top:1px solid rgba(255,255,255,0.2); padding:8px 0 48px; }
-  .logout-btn { display:flex; align-items:center; font-size:14px; font-weight:500; color:rgba(255,255,255,0.85); cursor:pointer; background:none; border:none; padding:11px 24px; transition:color 0.15s,background 0.15s; width:100%; font-family:'DM Sans',sans-serif; border-left:3px solid transparent; }
-  .logout-btn:hover { color:#fff; background:rgba(255,255,255,0.15); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .main-full { margin-left:var(--sidebar-width); flex:1; padding:32px; }
-
-  /* Page header row */
-  .page-header-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; }
-  .page-header-row .titles .page-title { font-size:22px; font-weight:600; margin-bottom:4px; }
-  .page-header-row .titles .page-subtitle { font-size:14px; color:var(--text-secondary); }
-
-  /* Stats row */
-  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 22px; box-shadow:var(--shadow); }
-  .slabel { font-size:12px; color:var(--text-secondary); font-weight:600; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em; }
-  .svalue { font-size:28px; font-weight:600; color:var(--text-primary); }
-  .stat-card.danger .svalue { color:#dc2626; }
-  .stat-card.warning .svalue { color:#ca8a04; }
-  .stat-card.good .svalue   { color:#16a34a; }
-  .loading-pulse { animation:pulse 1.5s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-  /* Alert panels */
-  .alerts-section { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
-  .alerts-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
-  .ap-header { padding:14px 18px; border-bottom:1px solid var(--border); font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
-  .alert-item { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; gap:12px; }
-  .alert-item:last-child { border-bottom:none; }
-  .alert-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:5px; }
-  .alert-dot.red    { background:#dc2626; }
-  .alert-dot.yellow { background:#ca8a04; }
-  .alert-name  { font-size:14px; font-weight:600; margin-bottom:3px; }
-  .alert-email { font-size:12px; color:var(--text-secondary); margin-bottom:3px; }
-  .alert-desc  { font-size:13px; color:var(--text-secondary); margin-bottom:6px; }
-  .alert-time  { font-size:11px; color:#bbb; }
-  .alert-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
-  .empty-panel { padding:28px 18px; text-align:center; font-size:13px; color:#bbb; }
-
-  /* Thresholds */
-  .thresholds-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:18px 20px; }
-  .thresholds-title { font-size:14px; font-weight:600; margin-bottom:14px; }
-  .threshold-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); gap:12px; }
-  .threshold-row:last-child { border-bottom:none; }
-  .th-label  { font-size:14px; flex:1; }
-  .th-value  { font-size:13px; color:var(--text-secondary); }
-  .th-status { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500; color:#16a34a; white-space:nowrap; }
-  .th-dot    { width:8px; height:8px; border-radius:50%; background:#16a34a; display:inline-block; }
-
-  /* Buttons */
-  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
-  .badge.risk     { background:#fee2e2; color:#dc2626; }
-  .badge.moderate { background:#fef9c3; color:#ca8a04; }
-  .purple-btn { background:var(--purple); color:#fff; border:none; border-radius:var(--radius); padding:6px 13px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:background 0.15s; }
-  .purple-btn:hover { background:var(--purple-hover); }
-  .purple-btn.lg { font-size:14px; padding:9px 18px; }
-  .purple-btn:disabled { opacity:0.6; cursor:not-allowed; }
-  .outline-btn { background:transparent; color:var(--purple); border:1.5px solid var(--purple); border-radius:var(--radius); padding:5px 11px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:background 0.15s; }
-  .outline-btn:hover { background:var(--purple-light); }
-  .outline-btn:disabled { opacity:0.5; cursor:not-allowed; }
-
-  /* ── Modal ─────────────────────────────────────────────────────────── */
-  .modal-backdrop {
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
-    z-index:100; align-items:center; justify-content:center;
+  :root {
+    --bg: #f5f0ff;
+    --surface: #ffffff;
+    --border: #e4ddf5;
+    --text: #18181b;
+    --muted: #6b7280;
+    --purple: #7c3aed;
+    --purple-hover: #6d28d9;
+    --purple-dim: #ede9fe;
+    --red: #dc2626;
+    --red-dim: #fef2f2;
+    --amber: #b45309;
+    --amber-dim: #fffbeb;
+    --green: #15803d;
+    --sidebar: 228px;
+    --radius: 8px;
   }
-  .modal-backdrop.open { display:flex; }
-  .modal {
-    background:#fff; border-radius:16px; padding:28px 28px 24px;
-    width:100%; max-width:460px; box-shadow:0 8px 32px rgba(0,0,0,0.18);
-    animation:modalIn 0.2s ease;
+
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar); background: var(--purple);
+    position: fixed; top: 0; left: 0; height: 100vh;
+    display: flex; flex-direction: column; padding-top: 28px;
   }
+  .sidebar-logo { padding: 0 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.15); margin-bottom: 10px; }
+  .sidebar-logo .org { font-size: 14px; font-weight: 600; color: #fff; letter-spacing: 0.06em; }
+  .sidebar-logo .sub { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+  .nav-section { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 20px 4px; }
+  .nav-link {
+    display: block; padding: 9px 20px;
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.8);
+    text-decoration: none; border-left: 3px solid transparent;
+    transition: background 0.12s, color 0.12s;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-link.active { background: rgba(255,255,255,0.15); color: #fff; border-left-color: #fff; }
+  .sidebar-footer { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.15); padding: 8px 0 36px; }
+  .logout-btn {
+    display: block; width: 100%; padding: 9px 20px; text-align: left;
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.8);
+    background: none; border: none; border-left: 3px solid transparent;
+    cursor: pointer; font-family: inherit; transition: background 0.12s, color 0.12s;
+  }
+  .logout-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+  /* ── Main ── */
+  .main { margin-left: var(--sidebar); padding: 36px 32px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+  .page-title { font-size: 20px; font-weight: 600; }
+  .page-sub { font-size: 13px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 8px; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1.6s ease-in-out infinite; flex-shrink: 0; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+  /* ── Stats ── */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 600; }
+  .stat-value.red   { color: var(--red); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.green { color: var(--green); }
+  .pulse { animation: fade 1.4s ease-in-out infinite; }
+  @keyframes fade { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* ── Alert panels ── */
+  .alerts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .panel-header {
+    padding: 13px 18px; border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .count-pill { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+  .pill-red   { background: var(--red-dim);   color: var(--red); }
+  .pill-amber { background: var(--amber-dim); color: var(--amber); }
+
+  .alert-row { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start; }
+  .alert-row:last-child { border-bottom: none; }
+  .alert-bar { width: 3px; border-radius: 2px; align-self: stretch; flex-shrink: 0; margin-top: 2px; }
+  .bar-red   { background: var(--red); }
+  .bar-amber { background: #f59e0b; }
+  .alert-body { flex: 1; min-width: 0; }
+  .alert-name  { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .alert-email { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .alert-desc  { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 4px; }
+  .alert-time  { font-size: 11px; color: #aaa; }
+  /* auto-generated badge */
+  .auto-badge { display:inline-block; font-size:10px; font-weight:600; padding:1px 7px; border-radius:10px; background:#ede9fe; color:#7c3aed; margin-bottom:4px; }
+  .alert-acts { display: flex; gap: 6px; margin-top: 8px; }
+  .btn-contact {
+    font-size: 12px; font-weight: 500; padding: 5px 12px;
+    background: var(--purple); color: #fff;
+    border: none; border-radius: 6px; cursor: pointer; font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn-contact:hover { opacity: 0.85; }
+  .btn-dismiss {
+    font-size: 12px; font-weight: 500; padding: 5px 12px;
+    background: none; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .btn-dismiss:hover { border-color: #aaa; }
+  .btn-dismiss:disabled { opacity: 0.5; cursor: not-allowed; }
+  .empty { padding: 28px 18px; text-align: center; font-size: 13px; color: #bbb; }
+
+  /* ── Detection rules panel ── */
+  .rules-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; }
+  .rules-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .rules-title { font-size: 13px; font-weight: 600; }
+  .rules-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .live-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; color: var(--green); background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 10px; border-radius: 20px; }
+  .rule-row { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+  .rule-row:last-child { border-bottom: none; }
+  .rule-text { flex: 1; min-width: 0; }
+  .rule-name { font-size: 13px; font-weight: 500; }
+  .rule-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .rule-level { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
+  .level-high { background: var(--red-dim);   color: var(--red); }
+  .level-mod  { background: var(--amber-dim); color: var(--amber); }
+
+  /* ── Thresholds panel ── */
+  .thresh-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; }
+  .thresh-header { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; }
+  .thresh-row { display: flex; align-items: center; gap: 10px; padding: 11px 18px; border-bottom: 1px solid var(--border); }
+  .thresh-row:last-child { border-bottom: none; }
+  .thresh-label { font-size: 13px; flex: 1; }
+  .thresh-input { width: 58px; padding: 5px 8px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 13px; color: var(--text); background: var(--bg); outline: none; }
+  .thresh-input:focus { border-color: var(--purple); }
+  .thresh-unit { font-size: 12px; color: var(--muted); white-space: nowrap; min-width: 56px; }
+  .thresh-save-row { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    font-size: 13px; font-weight: 500; padding: 7px 16px;
+    background: var(--purple); color: #fff;
+    border: none; border-radius: 6px; cursor: pointer; font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn-primary.lg { font-size: 14px; padding: 9px 18px; }
+
+  /* ── Modal ── */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 28px 28px 24px; width: 100%; max-width: 460px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); animation: modalIn 0.2s ease; }
   @keyframes modalIn { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
-  .modal-title { font-size:17px; font-weight:600; margin-bottom:18px; }
-  .form-group { margin-bottom:16px; }
-  .form-group label { display:block; font-size:13px; font-weight:500; color:var(--text-secondary); margin-bottom:6px; }
-  .form-control {
-    width:100%; padding:9px 12px; border:1.5px solid var(--border);
-    border-radius:var(--radius); font-family:'DM Sans',sans-serif;
-    font-size:14px; color:var(--text-primary); outline:none;
-    transition:border-color 0.15s; box-sizing:border-box;
-  }
-  .form-control:focus { border-color:var(--purple); }
-  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
-  .modal-cancel { background:none; border:1.5px solid var(--border); border-radius:var(--radius); padding:7px 16px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--text-secondary); cursor:pointer; }
-  .modal-cancel:hover { border-color:#bbb; }
-  .modal-error { font-size:12px; color:#dc2626; margin-top:10px; display:none; }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 18px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+  .form-control { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.15s; }
+  .form-control:focus { border-color: var(--purple); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .modal-cancel { background: none; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 7px 16px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; }
+  .modal-cancel:hover { border-color: #bbb; }
+  .modal-error { font-size: 12px; color: var(--red); margin-top: 10px; display: none; }
+
+  /* ── Toast ── */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #18181b; color: #fff; padding: 11px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; max-width: 300px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.18); animation: slideUp 0.25s ease; }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.info    { border-left: 3px solid var(--purple); }
+  @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
-<div class="layout">
+
   <aside class="sidebar">
-    <div class="sidebar-logo"><span>GCSW</span><small>Counselor Portal</small></div>
-    <div class="sidebar-main">
-      <a class="nav-item" href="/dashboard">Dashboard</a>
-      <div class="nav-section-label">Management</div>
-      <a class="nav-item" href="/students">Student Monitoring</a>
-      <a class="nav-item" href="/requests">Counseling Requests</a>
-      <a class="nav-item" href="/sessions">Active Sessions</a>
-      <a class="nav-item" href="/case-notes">Case Notes</a>
-      <a class="nav-item active" href="/risk-alerts">Risk Alerts</a>
+    <div class="sidebar-logo">
+      <div class="org">GCSW</div>
+      <div class="sub">Counselor Portal</div>
     </div>
-    <div class="sidebar-bottom">
-      <a class="nav-item" href="/about">About Us</a>
-      <a class="nav-item" href="/contacts">Contacts</a>
+    <a class="nav-link" href="/dashboard">Dashboard</a>
+    <div class="nav-section">Management</div>
+    <a class="nav-link" href="/students">Student Monitoring</a>
+    <a class="nav-link" href="/requests">Counseling Requests</a>
+    <a class="nav-link" href="/sessions">Active Sessions</a>
+    <a class="nav-link" href="/case-notes">Case Notes</a>
+    <a class="nav-link" href="/risk-alerts">Risk Alerts</a>
+    <a class="nav-link" href="/resources">Resource Library</a>
+    <div class="sidebar-footer">
+      <a class="nav-link" href="/about">About Us</a>
+      <a class="nav-link" href="/contacts">Contacts</a>
       <button class="logout-btn" id="logoutBtn">Log out</button>
     </div>
   </aside>
 
-  <div class="main-full">
+<div class="main">
 
-    <!-- Page header with Create Alert button -->
-    <div class="page-header-row">
-      <div class="titles">
-        <div class="page-title">Risk Alerts</div>
-        <div class="page-subtitle">Monitor and respond to abnormal student health patterns</div>
-      </div>
-      <button class="purple-btn lg" onclick="openCreateModal()">+ Create Alert</button>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-card danger">
-        <div class="slabel">High Risk</div>
-        <div class="svalue loading-pulse" id="statHigh">—</div>
-      </div>
-      <div class="stat-card warning">
-        <div class="slabel">Moderate Risk</div>
-        <div class="svalue loading-pulse" id="statMod">—</div>
-      </div>
-      <div class="stat-card good">
-        <div class="slabel">Monitored Today</div>
-        <div class="svalue loading-pulse" id="statMonitored">—</div>
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Risk Alerts</div>
+      <div class="page-sub">
+        <span class="live-dot"></span>
+        <span>Auto-scan runs every 6 hours &nbsp;·&nbsp; <span id="lastUpdated">Loading…</span></span>
       </div>
     </div>
+    <button class="btn-primary lg" onclick="openCreateModal()">+ Create Alert</button>
+  </div>
 
-    <!-- Alert panels -->
-    <div class="alerts-section">
-      <div class="alerts-panel">
-        <div class="ap-header">High Risk Alerts <span class="badge risk">Urgent</span></div>
-        <div id="highRiskList"><div class="empty-panel">Loading…</div></div>
-      </div>
-      <div class="alerts-panel">
-        <div class="ap-header">Moderate Risk <span class="badge moderate">Monitor</span></div>
-        <div id="modRiskList"><div class="empty-panel">Loading…</div></div>
-      </div>
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">High Risk</div>
+      <div class="stat-value red pulse" id="statHigh">—</div>
     </div>
-
-    <!-- Thresholds -->
-    <div class="thresholds-panel">
-      <div class="thresholds-title">Alert Thresholds</div>
-      <div class="threshold-row">
-        <span class="th-label">Mood — Very Sad for 3+ consecutive days</span>
-        <span class="th-value">Triggers high risk</span>
-        <span class="th-status"><span class="th-dot"></span>Active</span>
-      </div>
-      <div class="threshold-row">
-        <span class="th-label">Sleep — Less than 5 hrs for 3+ days</span>
-        <span class="th-value">Triggers moderate</span>
-        <span class="th-status"><span class="th-dot"></span>Active</span>
-      </div>
-      <div class="threshold-row">
-        <span class="th-label">Stress — Same stressor logged for 5+ days</span>
-        <span class="th-value">Triggers high risk</span>
-        <span class="th-status"><span class="th-dot"></span>Active</span>
-      </div>
-      <div class="threshold-row">
-        <span class="th-label">Water — Below 1L for 4+ consecutive days</span>
-        <span class="th-value">Triggers moderate</span>
-        <span class="th-status"><span class="th-dot"></span>Active</span>
-      </div>
-      <div class="threshold-row">
-        <span class="th-label">Activity — 0 mins for 7+ consecutive days</span>
-        <span class="th-value">Triggers moderate</span>
-        <span class="th-status"><span class="th-dot"></span>Active</span>
-      </div>
+    <div class="stat">
+      <div class="stat-label">Moderate Risk</div>
+      <div class="stat-value amber pulse" id="statMod">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Monitored Today</div>
+      <div class="stat-value green pulse" id="statMonitored">—</div>
     </div>
   </div>
+
+  <!-- Alert panels -->
+  <div class="alerts-grid">
+    <div class="panel">
+      <div class="panel-header">
+        High Risk
+        <span class="count-pill pill-red" id="highCount">0</span>
+      </div>
+      <div id="highRiskList"><div class="empty">Loading…</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        Moderate Risk
+        <span class="count-pill pill-amber" id="modCount">0</span>
+      </div>
+      <div id="modRiskList"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- Detection Rules (display only — controlled by scheduler) -->
+  <div class="rules-panel">
+    <div class="rules-header">
+      <div>
+        <div class="rules-title">Detection Rules</div>
+        <div class="rules-sub">Backend scheduler checks these every 6 hours automatically</div>
+      </div>
+      <span class="live-badge"><span class="live-dot"></span> Active</span>
+    </div>
+    <div class="rule-row">
+      <div class="rule-text">
+        <div class="rule-name">Sudden Mood Drop</div>
+        <div class="rule-desc">Consecutive downward mood streak detected</div>
+      </div>
+      <span class="rule-level level-high">High Risk</span>
+    </div>
+    <div class="rule-row">
+      <div class="rule-text">
+        <div class="rule-name">Stress Level Spike</div>
+        <div class="rule-desc">Stress jumps to threshold level or above</div>
+      </div>
+      <span class="rule-level level-high">High Risk</span>
+    </div>
+    <div class="rule-row">
+      <div class="rule-text">
+        <div class="rule-name">Sleep Collapse</div>
+        <div class="rule-desc">Sleep drops below the configured hours threshold</div>
+      </div>
+      <span class="rule-level level-mod">Moderate</span>
+    </div>
+    <div class="rule-row">
+      <div class="rule-text">
+        <div class="rule-name">Activity Withdrawal</div>
+        <div class="rule-desc">No physical activity logged for consecutive days</div>
+      </div>
+      <span class="rule-level level-mod">Moderate</span>
+    </div>
+    <div class="rule-row">
+      <div class="rule-text">
+        <div class="rule-name">Combined Low Indicators</div>
+        <div class="rule-desc">Multiple metrics simultaneously below threshold</div>
+      </div>
+      <span class="rule-level level-high">High Risk</span>
+    </div>
+  </div>
+
+  <!-- Thresholds (saved to Firestore, read by scheduler) -->
+  <div class="thresh-panel">
+    <div class="thresh-header">Thresholds — saved values are read by the auto-scanner</div>
+    <div class="thresh-row">
+      <span class="thresh-label">Mood drop streak triggers after</span>
+      <input class="thresh-input" type="number" id="cfg_mood_days" value="2" min="1" max="5">
+      <span class="thresh-unit">days</span>
+    </div>
+    <div class="thresh-row">
+      <span class="thresh-label">Stress spike: flag when level reaches</span>
+      <input class="thresh-input" type="number" id="cfg_stress_lvl" value="4" min="2" max="5">
+      <span class="thresh-unit">/ 5</span>
+    </div>
+    <div class="thresh-row">
+      <span class="thresh-label">Sleep collapse: trigger below</span>
+      <input class="thresh-input" type="number" id="cfg_sleep_hrs" value="5" min="2" max="7">
+      <span class="thresh-unit">hrs / night</span>
+    </div>
+    <div class="thresh-row">
+      <span class="thresh-label">Activity withdrawal: flag after</span>
+      <input class="thresh-input" type="number" id="cfg_act_days" value="3" min="1" max="7">
+      <span class="thresh-unit">days no activity</span>
+    </div>
+    <div class="thresh-row">
+      <span class="thresh-label">Combined: flag when at least</span>
+      <input class="thresh-input" type="number" id="cfg_combined_n" value="3" min="2" max="5">
+      <span class="thresh-unit">metrics low</span>
+    </div>
+    <div class="thresh-save-row">
+      <button class="btn-primary" id="saveConfigBtn" onclick="saveThresholds()">Save Thresholds</button>
+    </div>
+  </div>
+
 </div>
 
-<!-- ── Create Risk Alert Modal ─────────────────────────────────────────── -->
+<!-- Toast container -->
+<div id="toastContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
+
+<!-- Create Alert Modal -->
 <div class="modal-backdrop" id="createModal" onclick="handleBackdropClick(event)">
   <div class="modal">
-    <div class="modal-title">Create Risk Alert</div>
-
+    <div class="modal-title">Create Alert Manually</div>
     <div class="form-group">
       <label for="modalStudent">Student</label>
       <select class="form-control" id="modalStudent">
         <option value="">Loading students…</option>
       </select>
     </div>
-
     <div class="form-group">
       <label for="modalLevel">Risk Level</label>
       <select class="form-control" id="modalLevel">
@@ -217,18 +348,14 @@
         <option value="low">Low Risk</option>
       </select>
     </div>
-
     <div class="form-group">
       <label for="modalDesc">Description <span style="color:#bbb;font-weight:400;">(optional)</span></label>
-      <textarea class="form-control" id="modalDesc" rows="3"
-        placeholder="Describe the reason for this alert…" style="resize:vertical;"></textarea>
+      <textarea class="form-control" id="modalDesc" rows="3" placeholder="Describe the reason for this alert…" style="resize:vertical;"></textarea>
     </div>
-
     <div class="modal-error" id="modalError"></div>
-
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeCreateModal()">Cancel</button>
-      <button class="purple-btn lg" id="modalSubmitBtn" onclick="submitCreateAlert()">Create Alert</button>
+      <button class="btn-primary lg" id="modalSubmitBtn" onclick="submitCreateAlert()">Create Alert</button>
     </div>
   </div>
 </div>
@@ -236,11 +363,11 @@
 <script type="module">
   import { auth } from '/static/firebase_config.js';
   import { signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  // Active nav
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.toggle('active', item.getAttribute('href') === window.location.pathname);
+  // Active nav highlight
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('href') === window.location.pathname);
   });
 
   // Logout
@@ -254,16 +381,15 @@
   onAuthStateChanged(auth, async user => {
     if (!user) { window.location.replace('/login'); return; }
     _token = await user.getIdToken();
-    await Promise.all([loadAlerts(), loadDashboardStats(), loadStudents()]);
+    await Promise.all([loadAlerts(), loadDashboardStats(), loadStudents(), loadThresholds()]);
+    // Auto-refresh alerts every 30 seconds to catch new auto-generated ones
+    setInterval(loadAlerts, 30_000);
   });
 
-  // ── Load risk alerts ───────────────────────────────────────────────────
+  // ── Load alerts from backend ───────────────────────────────────────────
   async function loadAlerts() {
     try {
-      const res  = await fetch('/api/risk-alerts', {
-        headers: { Authorization: `Bearer ${_token}` },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res  = await fetch('/api/risk-alerts', { headers: { Authorization: `Bearer ${_token}` } });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
 
@@ -271,241 +397,216 @@
       const high   = alerts.filter(a => a.level === 'high');
       const mod    = alerts.filter(a => a.level === 'medium' || a.level === 'moderate');
 
-      setText('statHigh', high.length);
-      setText('statMod',  mod.length);
-      document.querySelectorAll('.loading-pulse').forEach(el => el.classList.remove('loading-pulse'));
+      setText('statHigh',  high.length);
+      setText('statMod',   mod.length);
+      setText('highCount', high.length);
+      setText('modCount',  mod.length);
+      document.querySelectorAll('.pulse').forEach(el => el.classList.remove('pulse'));
 
-      renderAlertList('highRiskList', high, 'red');
-      renderAlertList('modRiskList',  mod,  'yellow');
+      renderList('highRiskList', high, 'bar-red');
+      renderList('modRiskList',  mod,  'bar-amber');
 
-    } catch (err) {
-      console.error('Failed to load risk alerts:', err);
-      setHtml('highRiskList', `<div class="empty-panel">Failed to load. ${esc(err.message)}</div>`);
-      setHtml('modRiskList',  `<div class="empty-panel">Failed to load. ${esc(err.message)}</div>`);
-      document.querySelectorAll('.loading-pulse').forEach(el => {
-        el.textContent = 'Err';
-        el.classList.remove('loading-pulse');
-      });
-    }
-  }
-
-  // ── Load monitored-today stat ──────────────────────────────────────────
-  async function loadDashboardStats() {
-    try {
-      const res  = await fetch('/api/dashboard/stats', {
-        headers: { Authorization: `Bearer ${_token}` },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
-      setText('statMonitored', data.monitored_today ?? 0);
-      document.getElementById('statMonitored').classList.remove('loading-pulse');
-    } catch (_) {
-      setText('statMonitored', '—');
-      document.getElementById('statMonitored').classList.remove('loading-pulse');
-    }
-  }
-
-  // ── Load students into the modal dropdown ──────────────────────────────
-  async function loadStudents() {
-    try {
-      const res  = await fetch('/api/students', {
-        headers: { Authorization: `Bearer ${_token}` },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
-
-      const select   = document.getElementById('modalStudent');
-      const students = data.students || [];
-
-      if (students.length === 0) {
-        select.innerHTML = '<option value="">No students assigned to you</option>';
-        return;
-      }
-
-      // value = student UID — this is what gets sent to the backend
-      select.innerHTML =
-        '<option value="">— Select a student —</option>' +
-        students.map(s => {
-          const label = esc(s.name || s.email || s.uid);
-          const sub   = s.email ? ` (${esc(s.email)})` : '';
-          return `<option value="${esc(s.uid)}">${label}${sub}</option>`;
-        }).join('');
+      const lbl = document.getElementById('lastUpdated');
+      if (lbl) lbl.textContent = 'Updated ' + new Date().toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
 
     } catch (err) {
-      document.getElementById('modalStudent').innerHTML =
-        '<option value="">Failed to load students</option>';
-      console.error('loadStudents error:', err);
+      ['highRiskList','modRiskList'].forEach(id =>
+        setHtml(id, `<div class="empty">Error: ${esc(err.message)}</div>`)
+      );
     }
   }
 
-  // ── Render one alert panel ─────────────────────────────────────────────
-  function renderAlertList(containerId, alerts, dotColor) {
-    const container = document.getElementById(containerId);
-    if (alerts.length === 0) {
-      container.innerHTML = '<div class="empty-panel">No alerts in this category.</div>';
-      return;
-    }
-    container.innerHTML = alerts.map(a => `
-      <div class="alert-item" id="alert-${esc(a.id)}">
-        <div class="alert-dot ${dotColor}"></div>
-        <div style="flex:1;">
-          <div class="alert-name">${esc(a.student_name || a.student_uid || 'Unknown Student')}</div>
+  function renderList(containerId, alerts, barClass) {
+    const el = document.getElementById(containerId);
+    if (alerts.length === 0) { el.innerHTML = '<div class="empty">No alerts in this category.</div>'; return; }
+    el.innerHTML = alerts.map(a => `
+      <div class="alert-row" id="alert-${esc(a.id)}">
+        <div class="alert-bar ${barClass}"></div>
+        <div class="alert-body">
+          ${a.auto_generated ? '<span class="auto-badge">Auto-detected</span>' : ''}
+          <div class="alert-name">${esc(a.student_name || a.student_uid || 'Unknown')}</div>
           ${a.student_email ? `<div class="alert-email">${esc(a.student_email)}</div>` : ''}
-          <div class="alert-desc">${esc(a.description || '(no description)')}</div>
+          <div class="alert-desc">${esc(a.description || '—')}</div>
           <div class="alert-time">${formatDate(a.created_at)}</div>
-          <div class="alert-actions">
-            <button class="purple-btn"
-              onclick="contactStudent('${esc(a.student_uid || '')}', '${esc(a.id)}')">
-              ${dotColor === 'red' ? 'Contact Student' : 'Send Message'}
-            </button>
-            <button class="outline-btn" id="dismiss-${esc(a.id)}"
-              onclick="dismissAlert('${esc(a.id)}')">
-              Dismiss
-            </button>
+          <div class="alert-acts">
+            <button class="btn-contact" onclick="contactStudent('${esc(a.student_uid||'')}','${esc(a.id)}')">Contact Student</button>
+            <button class="btn-dismiss" id="dis-${esc(a.id)}" onclick="dismissAlert('${esc(a.id)}')">Dismiss</button>
           </div>
         </div>
       </div>
     `).join('');
   }
 
-  // ── Dismiss / resolve alert ────────────────────────────────────────────
+  // ── Dismiss alert ──────────────────────────────────────────────────────
   window.dismissAlert = async function(alertId) {
-    const btn = document.getElementById(`dismiss-${alertId}`);
+    const btn = document.getElementById('dis-' + alertId);
     if (btn) { btn.textContent = 'Resolving…'; btn.disabled = true; }
     try {
       const res  = await fetch(`/api/risk-alert/${alertId}/resolve`, {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${_token}` },
+        method: 'POST', headers: { Authorization: `Bearer ${_token}` },
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
 
-      const card = document.getElementById(`alert-${alertId}`);
+      const card = document.getElementById('alert-' + alertId);
       if (card) {
         card.style.transition = 'opacity 0.3s';
         card.style.opacity    = '0';
-        setTimeout(() => { card.remove(); updateEmptyStates(); }, 300);
+        setTimeout(() => { card.remove(); }, 300);
       }
       await loadAlerts();
+      showToast('Alert resolved', 'success');
     } catch (err) {
-      alert(`Failed to dismiss alert: ${err.message}`);
+      showToast('Failed: ' + err.message, 'info');
       if (btn) { btn.textContent = 'Dismiss'; btn.disabled = false; }
     }
   };
 
-  // ── Contact Student: auto-create session if needed, then open chat ────
+  // ── Contact student (open session) ────────────────────────────────────
   window.contactStudent = async function(studentUid, alertId) {
-    if (!studentUid) { alert('No student ID available.'); return; }
+    if (!studentUid) { alert('No student ID.'); return; }
     try {
       const res  = await fetch('/api/risk-alert/start-session', {
-        method:  'POST',
+        method: 'POST',
         headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ student_uid: studentUid, alert_id: alertId || '' }),
+        body: JSON.stringify({ student_uid: studentUid, alert_id: alertId || '' }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
-      // Navigate directly to the session — no approval queue needed
       window.location.href = `/sessions?session=${encodeURIComponent(data.session_id)}`;
+    } catch (err) { alert('Failed to open session: ' + err.message); }
+  };
+
+  // ── Load monitored today stat ──────────────────────────────────────────
+  async function loadDashboardStats() {
+    try {
+      const res  = await fetch('/api/dashboard/stats', { headers: { Authorization: `Bearer ${_token}` } });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setText('statMonitored', data.monitored_today ?? 0);
+    } catch (_) { setText('statMonitored', '—'); }
+  }
+
+  // ── Load students for create modal ────────────────────────────────────
+  async function loadStudents() {
+    try {
+      const res  = await fetch('/api/students', { headers: { Authorization: `Bearer ${_token}` } });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      const sel = document.getElementById('modalStudent');
+      sel.innerHTML = '<option value="">— Select a student —</option>' +
+        (data.students || []).map(s =>
+          `<option value="${esc(s.uid)}">${esc(s.name || s.email || s.uid)}${s.email ? ` (${esc(s.email)})` : ''}</option>`
+        ).join('');
+    } catch (_) {
+      document.getElementById('modalStudent').innerHTML = '<option value="">Failed to load students</option>';
+    }
+  }
+
+  // ── Load saved thresholds into inputs ─────────────────────────────────
+  async function loadThresholds() {
+    try {
+      const res  = await fetch('/api/system/config', { headers: { Authorization: `Bearer ${_token}` } });
+      const data = await res.json();
+      if (!data.success) return;
+      const c = data.config || {};
+      if (c.mood_drop_days)   document.getElementById('cfg_mood_days').value  = c.mood_drop_days;
+      if (c.stress_level)     document.getElementById('cfg_stress_lvl').value = c.stress_level;
+      if (c.sleep_hours)      document.getElementById('cfg_sleep_hrs').value  = c.sleep_hours;
+      if (c.activity_days)    document.getElementById('cfg_act_days').value   = c.activity_days;
+      if (c.combined_count)   document.getElementById('cfg_combined_n').value = c.combined_count;
+    } catch (_) {}
+  }
+
+  // ── Save thresholds to Firestore (scheduler reads these) ──────────────
+  window.saveThresholds = async function() {
+    const btn = document.getElementById('saveConfigBtn');
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    try {
+      const res = await fetch('/api/system/config', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mood_drop_days: +document.getElementById('cfg_mood_days').value  || 2,
+          stress_level:   +document.getElementById('cfg_stress_lvl').value || 4,
+          sleep_hours:    +document.getElementById('cfg_sleep_hrs').value  || 5,
+          activity_days:  +document.getElementById('cfg_act_days').value   || 3,
+          combined_count: +document.getElementById('cfg_combined_n').value || 3,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      showToast('Thresholds saved — scheduler will use these on next run', 'success');
     } catch (err) {
-      alert(`Failed to open session: ${err.message}`);
+      showToast('Failed: ' + err.message, 'info');
+    } finally {
+      btn.textContent = 'Save Thresholds'; btn.disabled = false;
     }
   };
 
-  // ── Modal helpers ──────────────────────────────────────────────────────
+  // ── Create alert modal ─────────────────────────────────────────────────
   window.openCreateModal = function() {
     document.getElementById('modalStudent').value       = '';
     document.getElementById('modalLevel').value         = 'high';
     document.getElementById('modalDesc').value          = '';
     document.getElementById('modalError').style.display = 'none';
-    document.getElementById('modalError').textContent   = '';
     document.getElementById('createModal').classList.add('open');
   };
-
   window.closeCreateModal = function() {
     document.getElementById('createModal').classList.remove('open');
   };
-
   window.handleBackdropClick = function(e) {
     if (e.target === document.getElementById('createModal')) closeCreateModal();
   };
 
-  // ── Submit new alert to backend ────────────────────────────────────────
   window.submitCreateAlert = async function() {
     const studentUid  = document.getElementById('modalStudent').value.trim();
     const level       = document.getElementById('modalLevel').value;
     const description = document.getElementById('modalDesc').value.trim();
     const errEl       = document.getElementById('modalError');
-    const submitBtn   = document.getElementById('modalSubmitBtn');
+    const btn         = document.getElementById('modalSubmitBtn');
 
     if (!studentUid) {
-      errEl.textContent   = 'Please select a student.';
-      errEl.style.display = 'block';
-      return;
+      errEl.textContent = 'Please select a student.'; errEl.style.display = 'block'; return;
     }
-
-    errEl.style.display   = 'none';
-    submitBtn.textContent = 'Creating…';
-    submitBtn.disabled    = true;
+    errEl.style.display = 'none';
+    btn.textContent = 'Creating…'; btn.disabled = true;
 
     try {
-      const res = await fetch('/api/risk-alert', {
-        method:  'POST',
-        headers: {
-          Authorization:  `Bearer ${_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          student_uid: studentUid,  // ← real UID, always populated from dropdown
-          level,
-          description,
-        }),
+      const res  = await fetch('/api/risk-alert', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_uid: studentUid, level, description }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
-
       closeCreateModal();
-      await loadAlerts();   // refresh panels + counts
-
+      await loadAlerts();
+      showToast('Alert created', 'success');
     } catch (err) {
-      errEl.textContent   = `Failed to create alert: ${err.message}`;
-      errEl.style.display = 'block';
+      errEl.textContent = 'Failed: ' + err.message; errEl.style.display = 'block';
     } finally {
-      submitBtn.textContent = 'Create Alert';
-      submitBtn.disabled    = false;
+      btn.textContent = 'Create Alert'; btn.disabled = false;
     }
   };
 
-  function updateEmptyStates() {
-    ['highRiskList', 'modRiskList'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.querySelectorAll('.alert-item').length === 0) {
-        el.innerHTML = '<div class="empty-panel">No alerts in this category.</div>';
-      }
-    });
-  }
-
   // ── Helpers ────────────────────────────────────────────────────────────
-  function setText(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val ?? '—';
+  function showToast(msg, type) {
+    const c  = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className   = 'toast ' + (type || 'info');
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => { el.style.transition = 'opacity 0.4s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, 3500);
   }
-  function setHtml(id, html) {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = html;
-  }
+  function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? '—'; }
+  function setHtml(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
   function formatDate(iso) {
     if (!iso) return '—';
-    return new Date(iso).toLocaleDateString('en-PH', {
-      month:'short', day:'numeric', year:'numeric',
-      hour:'numeric', minute:'2-digit',
-    });
+    return new Date(iso).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
   }
   function esc(str) {
-    return String(str ?? '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 </script>
 </body>

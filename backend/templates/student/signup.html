@@ -9,13 +9,12 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --surface: #ffffff;
       --border: #e2e5ea;
       --text-primary: #1a1d23;
       --text-secondary: #5a6075;
       --green: #2db84b;
       --green-hover: #25a342;
-      --blue-bar: #2979ff;
+      --green-light: #e8f5e9;
       --radius: 10px;
     }
 
@@ -31,6 +30,7 @@
       height: 100vh;
     }
 
+    /* ── Left panel ── */
     .left {
       flex: 1;
       display: flex;
@@ -51,16 +51,7 @@
       margin-top: 16px;
     }
 
-    .role-badge { 
-      display: inline-block; 
-      background: #e8f5e9; 
-      color: #2e7d32; 
-      padding: 6px 14px; 
-      border-radius: 20px; 
-      font-size: 12px; 
-      font-weight: 600; 
-    }
-
+    /* ── Right panel ── */
     .right {
       flex: 1;
       display: flex;
@@ -72,16 +63,38 @@
       overflow-y: auto;
     }
 
-    .form-box {
+    /* ── Card ── */
+    .card {
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
     }
 
-    .form-box h2 {
-      font-size: 22px;
+    @media (max-width: 1024px) {
+      .wrapper { flex-direction: column; }
+      .left { padding: 32px; }
+      .right { border-left: none; border-top: 1px solid var(--border); padding: 32px; }
+    }
+
+    @media (max-width: 640px) {
+      .left { padding: 24px; }
+      .right { padding: 24px; }
+    }
+
+    .role-badge {
+      display: inline-block;
+      background: var(--green-light);
+      color: #2e7d32;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
       font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .card h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
     }
 
     .form-subtitle {
@@ -90,127 +103,12 @@
       margin-bottom: 20px;
     }
 
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .input-group input,
-    .input-group select {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 16px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      color: var(--text-primary);
-      outline: none;
-      transition: border-color 0.15s;
-      appearance: none;
-      -webkit-appearance: none;
-    }
-
-    .input-group input:focus,
-    .input-group select:focus {
-      border-color: var(--green);
-    }
-
-    .password-wrap {
-      position: relative;
-    }
-
-    .toggle-pass {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--text-secondary);
-      user-select: none;
-    }
-
-    .signup-btn {
-      width: 100%;
-      background: var(--green);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      padding: 13px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
-      margin-top: 6px;
-    }
-
-    .signup-btn:hover:not(:disabled) {
-      background: var(--green-hover);
-    }
-
-    .signup-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .message {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 13px;
-      min-height: 18px;
-      opacity: 0;
-      transition: opacity 0.3s;
-      color: var(--green);
-    }
-
-    .message.show {
-      opacity: 1;
-    }
-
-    .message.error {
-      color: #e53935;
-    }
-
-    .link {
-      display: block;
-      text-align: center;
-      margin-top: 14px;
-      font-size: 13px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .link span {
-      color: var(--green);
-      font-weight: 500;
-    }
-
-    .link:hover span {
-      text-decoration: underline;
-    }
-
-    .screen {
-      display: none;
-      width: 100%;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
+    /* ── Progress ── */
     .prog-bar {
       height: 4px;
       background: var(--border);
       border-radius: 2px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .prog-fill {
@@ -225,75 +123,162 @@
       font-weight: 500;
       color: var(--text-secondary);
       letter-spacing: 0.08em;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
-    .role-cards {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
+    /* ── Inputs ── */
+    .input-group { margin-bottom: 14px; }
+
+    .input-group label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 6px;
     }
 
-    .role-card {
-      position: relative;
-    }
-
-    .role-card input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .role-card label {
-      display: flex;
-      align-items: center;
-      padding: 14px 16px;
+    .input-group input {
+      width: 100%;
       border: 1.5px solid var(--border);
       border-radius: var(--radius);
+      padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+      background: #fff;
+    }
+
+    .input-group input:focus { border-color: var(--green); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .password-wrap { position: relative; }
+
+    .toggle-pass {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
       cursor: pointer;
+      font-size: 13px;
       color: var(--text-secondary);
+      user-select: none;
+    }
+
+    /* ── Pill selectors ── */
+    .pill-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+    .pill-opt {
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--text-secondary);
+      cursor: pointer;
       transition: all 0.15s;
       user-select: none;
-      font-size: 14px;
-      font-weight: 500;
     }
 
-    .role-card label:hover {
-      border-color: var(--green);
-      color: var(--text-primary);
+    .pill-opt:hover { border-color: var(--green); color: var(--text-primary); }
+    .pill-opt.selected { background: var(--green-light); border-color: var(--green); color: #2e7d32; }
+
+    /* ── Stress scale ── */
+    .stress-scale {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-top: 6px;
     }
 
-    .role-card input:checked + label {
-      background: #e8f5e9;
-      border-color: var(--green);
-      color: var(--text-primary);
-    }
-
-    .notice {
-      background: #f7f9fb;
+    .stress-btn {
+      padding: 10px 4px;
+      border: 1.5px solid var(--border);
       border-radius: var(--radius);
-      padding: 12px 14px;
-      margin-top: 12px;
       font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      background: #fff;
       color: var(--text-secondary);
-      line-height: 1.6;
+      transition: all 0.15s;
+      line-height: 1.3;
     }
 
-    .notice a {
+    .stress-btn:hover { border-color: var(--green); color: var(--text-primary); }
+    .stress-btn.selected { border-color: var(--green); background: var(--green-light); color: #2e7d32; }
+
+    .stress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    /* ── Slider ── */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .slider-row input[type=range] { flex: 1; accent-color: var(--green); }
+
+    .slider-val {
+      font-size: 14px;
+      font-weight: 600;
       color: var(--green);
-      text-decoration: none;
+      min-width: 30px;
+      text-align: right;
     }
 
-    .notice a:hover {
-      text-decoration: underline;
+    /* ── Goal cards ── */
+    .goal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
+
+    .goal-card {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 10px;
+      cursor: pointer;
+      background: #fff;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .goal-card:hover { border-color: var(--green); }
+    .goal-card.selected { border-color: var(--green); background: var(--green-light); }
+    .goal-card strong { font-size: 12px; font-weight: 600; display: block; }
+    .goal-card span { font-size: 11px; color: var(--text-secondary); display: block; margin-top: 2px; line-height: 1.3; }
+
+    /* ── Buttons ── */
+    .signup-btn {
+      width: 100%;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+
+    .signup-btn:hover:not(:disabled) { background: var(--green-hover); }
+    .signup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .skip-link {
       text-align: center;
-      font-size: 13px;
-      color: var(--text-secondary);
       margin-top: 12px;
     }
 
@@ -308,81 +293,86 @@
       text-decoration: underline;
     }
 
+    .link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .link span {
+      color: var(--green);
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .link span:hover { text-decoration: underline; }
+
+    /* ── Messages ── */
+    .err-msg {
+      font-size: 12px;
+      color: #e53935;
+      margin-top: 4px;
+      min-height: 16px;
+      display: none;
+    }
+
+    .err-msg.show { display: block; }
+
+    /* ── Notice ── */
+    .notice {
+      background: #f7f9fb;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .notice a { color: var(--green); text-decoration: none; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    /* ── Screens ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Success ── */
+    .success-wrap { text-align: center; padding: 8px 0; }
+
     .success-icon {
       width: 56px;
       height: 56px;
       margin: 0 auto 16px;
     }
 
-    .success-icon svg {
-      width: 100%;
-      height: 100%;
-    }
+    .success-icon svg { width: 100%; height: 100%; }
 
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 16px 0;
-    }
-
-    @media (max-width: 1024px) {
-      .wrapper {
-        flex-direction: column;
-      }
-
-      .left {
-        padding: 32px;
-      }
-
-      .right {
-        border-left: none;
-        border-top: 1px solid var(--border);
-        padding: 32px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .left {
-        padding: 24px;
-      }
-
-      .right {
-        padding: 24px;
-      }
-    }
-
-    footer {
-      background: var(--blue-bar);
-      height: 56px;
+    .tag-list {
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
       justify-content: center;
-      gap: 40px;
+      margin: 12px 0 20px;
     }
 
-    footer a {
-      color: #fff;
-      text-decoration: none;
-      font-size: 14px;
+    .tag {
+      background: var(--green-light);
+      color: #2e7d32;
+      font-size: 12px;
       font-weight: 500;
-      opacity: 0.9;
-      transition: opacity 0.15s;
+      padding: 4px 10px;
+      border-radius: 20px;
     }
-
-    footer a:hover {
-      opacity: 1;
-    }
-    input[name="year"]:checked + .year-btn {
-    border-color: var(--green);
-    background: var(--green);
-    color: #fff;
-    font-weight: 600;
-  }
-</style>
+  </style>
 </head>
 <body>
 
 <div class="wrapper">
+
+  <!-- Left panel -->
   <div class="left">
     <svg width="160" height="160" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <circle cx="100" cy="100" r="90" fill="none" stroke="#28a745" stroke-width="10"/>
@@ -394,166 +384,319 @@
     </div>
   </div>
 
+  <!-- Right panel -->
   <div class="right">
-    <!-- SCREEN 1: SIGN UP -->
+  <div class="card">
+
+    <!-- ══ SCREEN 1: ACCOUNT ══ -->
     <div class="screen active" id="screenSignup">
-      <div class="form-box">
-        <div class="role-badge">Student Account</div>
-        <h2>Create Account</h2>
-        <p class="form-subtitle">Join the student wellness community</p>
+      <div class="role-badge">Student Account</div>
+      <h2>Create Account</h2>
+      <p class="form-subtitle">Join the student wellness community</p>
 
-        <div class="input-group">
-          <label for="suName">Full name</label>
-          <input type="text" id="suName" placeholder="Enter your full name" autocomplete="name">
-          <div class="message error" id="suNameErr"></div>
-        </div>
-
-        <div class="input-group">
-          <label for="suEmail">Email</label>
-          <input type="email" id="suEmail" placeholder="Enter your email" autocomplete="email">
-          <div class="message error" id="suEmailErr"></div>
-        </div>
-
-        <div class="input-group">
-          <label for="suPw">Password</label>
-          <div class="password-wrap">
-            <input type="password" id="suPw" placeholder="Enter password (min. 8 characters)" autocomplete="new-password">
-            <span class="toggle-pass" id="pwToggle">Show</span>
-          </div>
-          <div class="message error" id="suPwErr"></div>
-        </div>
-
-        <div class="input-group">
-          <label for="suConfirm">Confirm Password</label>
-          <div class="password-wrap">
-            <input type="password" id="suConfirm" placeholder="Repeat your password" autocomplete="new-password">
-            <span class="toggle-pass" id="pwToggle2">Show</span>
-          </div>
-          <div class="message error" id="confirmErr"></div>
-        </div>
-
-        <div class="notice">
-          <p>By signing up you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
-        </div>
-
-        <button class="signup-btn" id="signupBtn" disabled>Create Account</button>
-        <a class="link">Already have an account? <span onclick="window.location.href='/login'">Sign in</span></a>
+      <div class="input-group">
+        <label for="suName">Full name</label>
+        <input type="text" id="suName" placeholder="Enter your full name" autocomplete="name">
+        <div class="err-msg" id="suNameErr"></div>
       </div>
+
+      <div class="input-group">
+        <label for="suEmail">Email</label>
+        <input type="email" id="suEmail" placeholder="Enter your email" autocomplete="email">
+        <div class="err-msg" id="suEmailErr"></div>
+      </div>
+
+      <div class="input-group">
+        <label for="suPw">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="suPw" placeholder="Min. 8 characters" autocomplete="new-password">
+          <span class="toggle-pass" data-target="suPw">Show</span>
+        </div>
+        <div class="err-msg" id="suPwErr"></div>
+      </div>
+
+      <div class="input-group">
+        <label for="suConfirm">Confirm Password</label>
+        <div class="password-wrap">
+          <input type="password" id="suConfirm" placeholder="Repeat your password" autocomplete="new-password">
+          <span class="toggle-pass" data-target="suConfirm">Show</span>
+        </div>
+        <div class="err-msg" id="suConfirmErr"></div>
+      </div>
+
+      <div class="notice">
+        By signing up you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+      </div>
+
+      <button class="signup-btn" id="signupBtn" disabled>Create Account</button>
+      <div class="link">Already have an account? <span onclick="window.location.href='/login'">Sign in</span></div>
     </div>
 
-    <!-- SCREEN 2: PROFILE -->
-    <div class="screen" id="screenProfile">
-      <div class="form-box">
-        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:50%"></div></div>
-        <div class="step-label" id="stepLabel">STEP 1 OF 2</div>
+    <!-- ══ SCREEN 2: PERSONAL INFO ══ -->
+    <div class="screen" id="screenPersonal">
+      <div class="prog-bar"><div class="prog-fill" style="width:33%"></div></div>
+      <div class="step-label">STEP 1 OF 3 — ABOUT YOU</div>
+      <h2>About You</h2>
+      <p class="form-subtitle">Help us personalise your wellness experience.</p>
 
-        <h2 id="profileTitle">Complete Your Profile</h2>
-        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;" id="profileSub"></p>
-
-        <!-- Profile Step 1: School Info -->
-        <div id="pstep1">
-          <div class="input-group">
-            <label for="school">School / Institution</label>
-            <input type="text" id="school" placeholder="e.g. University of Santo Tomas">
-            <div class="message error" id="schoolErr"></div>
-          </div>
-
-          <div class="input-group">
-            <label>Year Level</label>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-              <div style="position: relative;">
-                <input type="radio" name="year" id="y1" value="1st Year" style="position: absolute; opacity: 0;">
-                <label for="y1" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">1st Year</label>
-              </div>
-              <div style="position: relative;">
-                <input type="radio" name="year" id="y2" value="2nd Year" style="position: absolute; opacity: 0;">
-                <label for="y2" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">2nd Year</label>
-              </div>
-              <div style="position: relative;">
-                <input type="radio" name="year" id="y3" value="3rd Year" style="position: absolute; opacity: 0;">
-                <label for="y3" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">3rd Year</label>
-              </div>
-              <div style="position: relative;">
-                <input type="radio" name="year" id="y4" value="4th Year+" style="position: absolute; opacity: 0;">
-                <label for="y4" class="year-btn" style="display: block; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius); text-align: center; cursor: pointer; transition: all 0.15s;">4th+</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-
-        <hr class="divider">
-        <div class="message error" id="profileErr"></div>
-        <button class="signup-btn" id="profileBtn" disabled>Continue</button>
-        <div class="skip-link"><button id="skipBtn">Skip for now</button></div>
+      <div class="input-group">
+        <label for="dob">Date of birth</label>
+        <input type="date" id="dob">
       </div>
+
+      <div class="input-group">
+        <label>Sex</label>
+        <div class="pill-group" id="sexGroup">
+          <div class="pill-opt" data-val="Female">Female</div>
+          <div class="pill-opt" data-val="Male">Male</div>
+          <div class="pill-opt" data-val="Non-binary">Non-binary</div>
+          <div class="pill-opt" data-val="Prefer not to say">Prefer not to say</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="input-group">
+          <label for="heightCm">Height (cm)</label>
+          <input type="number" id="heightCm" placeholder="e.g. 165" min="100" max="250">
+        </div>
+        <div class="input-group">
+          <label for="weightKg">Weight (kg)</label>
+          <input type="number" id="weightKg" placeholder="e.g. 58" min="30" max="300">
+        </div>
+      </div>
+
+      <hr class="divider">
+      <button class="signup-btn" id="personalBtn">Continue</button>
+      <div class="skip-link"><button id="skipPersonal">Skip for now</button></div>
     </div>
 
-    <!-- SCREEN 3: SUCCESS -->
+    <!-- ══ SCREEN 3: LIFESTYLE ══ -->
+    <div class="screen" id="screenLifestyle">
+      <div class="prog-bar"><div class="prog-fill" style="width:66%"></div></div>
+      <div class="step-label">STEP 2 OF 3 — YOUR LIFESTYLE</div>
+      <h2>Your Lifestyle</h2>
+      <p class="form-subtitle">Tell us about your current habits so we can set your baselines.</p>
+
+      <div class="input-group">
+        <label>Hours of sleep per night</label>
+        <div class="slider-row">
+          <input type="range" id="sleepSlider" min="3" max="12" value="7" step="0.5">
+          <span class="slider-val" id="sleepVal">7h</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Physical activity level</label>
+        <div class="pill-group" id="activityGroup">
+          <div class="pill-opt" data-val="Sedentary">Sedentary</div>
+          <div class="pill-opt" data-val="Lightly active">Light</div>
+          <div class="pill-opt" data-val="Moderately active">Moderate</div>
+          <div class="pill-opt" data-val="Very active">Active</div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Current stress level</label>
+        <div class="stress-scale" id="stressGroup">
+          <div class="stress-btn" data-val="1">1<br>Very low</div>
+          <div class="stress-btn" data-val="2">2<br>Low</div>
+          <div class="stress-btn" data-val="3">3<br>Moderate</div>
+          <div class="stress-btn" data-val="4">4<br>High</div>
+          <div class="stress-btn" data-val="5">5<br>Very high</div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Diet quality</label>
+        <div class="pill-group" id="dietGroup">
+          <div class="pill-opt" data-val="Poor">Poor</div>
+          <div class="pill-opt" data-val="Fair">Fair</div>
+          <div class="pill-opt" data-val="Good">Good</div>
+          <div class="pill-opt" data-val="Very good">Very good</div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Glasses of water per day</label>
+        <div class="slider-row">
+          <input type="range" id="waterSlider" min="1" max="15" value="6" step="1">
+          <span class="slider-val" id="waterVal">6</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <button class="signup-btn" id="lifestyleBtn">Continue</button>
+      <div class="skip-link"><button id="skipLifestyle">Skip for now</button></div>
+    </div>
+
+    <!-- ══ SCREEN 4: GOALS ══ -->
+    <div class="screen" id="screenGoals">
+      <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+      <div class="step-label">STEP 3 OF 3 — YOUR GOALS</div>
+      <h2>Your Goals</h2>
+      <p class="form-subtitle">Pick up to 3. We'll tailor your dashboard around them.</p>
+
+      <div class="goal-grid" id="goalsGrid">
+        <div class="goal-card" data-val="Sleep better">
+          <strong>Sleep better</strong>
+          <span>Improve quality & duration</span>
+        </div>
+        <div class="goal-card" data-val="Manage stress">
+          <strong>Manage stress</strong>
+          <span>Build healthier coping habits</span>
+        </div>
+        <div class="goal-card" data-val="Stay hydrated">
+          <strong>Stay hydrated</strong>
+          <span>Hit daily water targets</span>
+        </div>
+        <div class="goal-card" data-val="Be more active">
+          <strong>Be more active</strong>
+          <span>Track steps & movement</span>
+        </div>
+        <div class="goal-card" data-val="Improve mood">
+          <strong>Improve mood</strong>
+          <span>Daily mood check-ins</span>
+        </div>
+        <div class="goal-card" data-val="Eat healthier">
+          <strong>Eat healthier</strong>
+          <span>Track nutrition habits</span>
+        </div>
+      </div>
+
+      <div class="err-msg" id="goalsErr" style="margin-top:8px;"></div>
+
+      <hr class="divider">
+      <button class="signup-btn" id="goalsBtn">Finish Setup</button>
+      <div class="skip-link"><button id="skipGoals">Skip for now</button></div>
+    </div>
+
+    <!-- ══ SCREEN 5: SUCCESS ══ -->
     <div class="screen" id="screenSuccess">
-      <div class="form-box" style="text-align: center;">
+      <div class="success-wrap">
         <div class="success-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="11" stroke="#2db84b" stroke-width="1.5"/>
             <path d="M5 13l4 4L19 7" stroke="#2db84b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <h2 id="successTitle">Welcome to GCSW!</h2>
-        <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 20px 0; line-height: 1.6;" id="successSub">Your account is ready. Start tracking your wellness.</p>
+        <p style="font-size:13px;color:var(--text-secondary);margin:10px 0 4px;line-height:1.6;">
+          Your account is ready. Reminders and check-ins have been activated automatically.
+        </p>
+        <div class="tag-list" id="successTags"></div>
       </div>
     </div>
-  </div>
-</div>
+
+  </div><!-- /card -->
+  </div><!-- /right -->
+</div><!-- /wrapper -->
 
 <script type="module">
   import { auth, db } from '/static/firebase_config.js';
-  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  /* ── Screen routing ── */
+  const profile = {
+    name: '', email: '', password: '',
+    dob: '', sex: '', height: '', weight: '',
+    sleep: 7, activity: '', stress: '', diet: '', water: 6,
+    goals: [],
+    reminders: {
+      morning_checkin:  { enabled: true, time: '08:00' },
+      hydration_nudge:  { enabled: true, interval_hours: 2 },
+      evening_mood_log: { enabled: true, time: '21:00' },
+      weekly_summary:   { enabled: true, day: 'Sunday', time: '10:00' }
+    }
+  };
+
+  /* ── Routing ── */
   function goTo(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /* ── Utilities ── */
-  function isValidEmail(v) { 
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); 
+  /* ── Helpers ── */
+  function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function showErr(id, text) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.classList.toggle('show', !!text);
   }
 
-  function showMsg(elementId, text, isError = false) {
-    const msg = document.getElementById(elementId);
-    msg.textContent = text;
-    msg.className = 'message' + (text ? ' show' : '');
-    if (isError) msg.classList.add('error');
-    else msg.classList.remove('error');
-  }
-
-  function togglePass(inputId, btnId) {
-    const input = document.getElementById(inputId);
-    const btn = document.getElementById(btnId);
+  /* ── Password toggles ── */
+  document.querySelectorAll('.toggle-pass').forEach(btn => {
     btn.addEventListener('click', () => {
-      const show = input.type === 'password';
-      input.type = show ? 'text' : 'password';
+      const inp = document.getElementById(btn.dataset.target);
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
       btn.textContent = show ? 'Hide' : 'Show';
     });
+  });
+
+  /* ── Pill groups ── */
+  function makePillGroup(id) {
+    document.querySelectorAll(`#${id} .pill-opt`).forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll(`#${id} .pill-opt`).forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+      });
+    });
+  }
+  function getSelectedPill(id) {
+    const el = document.querySelector(`#${id} .pill-opt.selected`);
+    return el ? el.dataset.val : '';
   }
 
-  /* ══════════════════════════════
-     SIGN UP SCREEN
-  ══════════════════════════════ */
-  const suName = document.getElementById('suName');
-  const suEmail = document.getElementById('suEmail');
-  const suPw = document.getElementById('suPw');
+  makePillGroup('sexGroup');
+  makePillGroup('activityGroup');
+  makePillGroup('dietGroup');
+
+  /* ── Stress scale ── */
+  document.querySelectorAll('#stressGroup .stress-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#stressGroup .stress-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  /* ── Sliders ── */
+  const sleepSlider = document.getElementById('sleepSlider');
+  sleepSlider.addEventListener('input', () => {
+    document.getElementById('sleepVal').textContent = sleepSlider.value + 'h';
+  });
+
+  const waterSlider = document.getElementById('waterSlider');
+  waterSlider.addEventListener('input', () => {
+    document.getElementById('waterVal').textContent = waterSlider.value;
+  });
+
+  /* ── Goal cards (max 3) ── */
+  document.querySelectorAll('#goalsGrid .goal-card').forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.classList.contains('selected')) {
+        card.classList.remove('selected');
+        showErr('goalsErr', '');
+      } else {
+        if (document.querySelectorAll('#goalsGrid .goal-card.selected').length >= 3) {
+          showErr('goalsErr', 'You can pick up to 3 goals.');
+          return;
+        }
+        card.classList.add('selected');
+        showErr('goalsErr', '');
+      }
+    });
+  });
+
+  /* ══ SCREEN 1 — ACCOUNT ══ */
+  const suName    = document.getElementById('suName');
+  const suEmail   = document.getElementById('suEmail');
+  const suPw      = document.getElementById('suPw');
   const suConfirm = document.getElementById('suConfirm');
   const signupBtn = document.getElementById('signupBtn');
 
-  suName.addEventListener('input', () => validateSignup());
-  suEmail.addEventListener('input', () => validateSignup());
-  suPw.addEventListener('input', () => validateSignup());
-  suConfirm.addEventListener('input', () => validateSignup());
-
-  function validateSignup() {
+  function validateAccount() {
     signupBtn.disabled = !(
       suName.value.trim().length >= 2 &&
       isValidEmail(suEmail.value.trim()) &&
@@ -562,168 +705,106 @@
     );
   }
 
-  togglePass('suPw', 'pwToggle');
-  togglePass('suConfirm', 'pwToggle2');
+  [suName, suEmail, suPw, suConfirm].forEach(el => el.addEventListener('input', validateAccount));
 
   signupBtn.addEventListener('click', () => {
     let ok = true;
-
-    if (suName.value.trim().length < 2) {
-      showMsg('suNameErr', 'Please enter your full name.', true);
-      ok = false;
-    } else {
-      showMsg('suNameErr', '');
-    }
-
-    if (!isValidEmail(suEmail.value.trim())) {
-      showMsg('suEmailErr', 'Please enter a valid email address.', true);
-      ok = false;
-    } else {
-      showMsg('suEmailErr', '');
-    }
-
-    if (suPw.value.length < 8) {
-      showMsg('suPwErr', 'Password must be at least 8 characters.', true);
-      ok = false;
-    } else {
-      showMsg('suPwErr', '');
-    }
-
-    if (suConfirm.value !== suPw.value) {
-      showMsg('confirmErr', 'Passwords do not match.', true);
-      ok = false;
-    } else {
-      showMsg('confirmErr', '');
-    }
-
+    if (suName.value.trim().length < 2)       { showErr('suNameErr',    'Please enter your full name.'); ok = false; }    else showErr('suNameErr', '');
+    if (!isValidEmail(suEmail.value.trim()))   { showErr('suEmailErr',   'Please enter a valid email.'); ok = false; }     else showErr('suEmailErr', '');
+    if (suPw.value.length < 8)                 { showErr('suPwErr',      'Password must be at least 8 characters.'); ok = false; } else showErr('suPwErr', '');
+    if (suConfirm.value !== suPw.value)        { showErr('suConfirmErr', 'Passwords do not match.'); ok = false; }         else showErr('suConfirmErr', '');
     if (!ok) return;
-
-    goTo('screenProfile');
-    showPStep(1);
+    profile.name = suName.value.trim();
+    profile.email = suEmail.value.trim();
+    profile.password = suPw.value;
+    goTo('screenPersonal');
   });
 
-  /* ══════════════════════════════
-     PROFILE SCREEN
-  ══════════════════════════════ */
-  let pstep = 1;
+  /* ══ SCREEN 2 — PERSONAL ══ */
+  document.getElementById('personalBtn').addEventListener('click', () => { collectPersonal(); goTo('screenLifestyle'); });
+  document.getElementById('skipPersonal').addEventListener('click', () => goTo('screenLifestyle'));
 
-  const schoolEl = document.getElementById('school');
-  const profileBtn = document.getElementById('profileBtn');
-  const skipBtn = document.getElementById('skipBtn');
-  const progFill = document.getElementById('progFill');
-  const stepLabel = document.getElementById('stepLabel');
-  const profileTitle = document.getElementById('profileTitle');
-  const profileSub = document.getElementById('profileSub');
-
-  function isPStep1Valid() {
-    return (
-      schoolEl.value.trim().length >= 2 &&
-      !!document.querySelector('input[name="year"]:checked')
-    );
+  function collectPersonal() {
+    profile.dob    = document.getElementById('dob').value;
+    profile.sex    = getSelectedPill('sexGroup');
+    profile.height = document.getElementById('heightCm').value;
+    profile.weight = document.getElementById('weightKg').value;
   }
 
-  function updateProgress() {
-    progFill.style.width = '100%';
-    profileTitle.textContent = 'School Information';
-    profileSub.textContent = 'Tell us about your school and academic year.';
-    stepLabel.textContent = 'STEP 1 OF 1';
-    profileBtn.textContent = 'Complete Profile';
+  /* ══ SCREEN 3 — LIFESTYLE ══ */
+  document.getElementById('lifestyleBtn').addEventListener('click', () => { collectLifestyle(); goTo('screenGoals'); });
+  document.getElementById('skipLifestyle').addEventListener('click', () => goTo('screenGoals'));
+
+  function collectLifestyle() {
+    profile.sleep    = parseFloat(sleepSlider.value);
+    profile.activity = getSelectedPill('activityGroup');
+    profile.stress   = (() => { const el = document.querySelector('#stressGroup .stress-btn.selected'); return el ? el.dataset.val : ''; })();
+    profile.diet     = getSelectedPill('dietGroup');
+    profile.water    = parseInt(waterSlider.value);
   }
 
-  function validateProfile() {
-    profileBtn.disabled = !isPStep1Valid();
-    updateProgress();
-  }
+  /* ══ SCREEN 4 — GOALS → SAVE ══ */
+  document.getElementById('goalsBtn').addEventListener('click', () => saveAll(true));
+  document.getElementById('skipGoals').addEventListener('click', () => saveAll(false));
 
-  function showPStep(n) {
-    document.getElementById('pstep1').style.display = 'block';
-    validateProfile();
-  }
+  async function saveAll(withGoals) {
+    const btn  = document.getElementById('goalsBtn');
+    const skip = document.getElementById('skipGoals');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    skip.disabled = true;
 
-  profileBtn.addEventListener('click', () => {
-    if (!isPStep1Valid()) {
-      if (schoolEl.value.trim().length < 2) {
-        showMsg('schoolErr', 'Please enter your school name.', true);
-      }
-      return;
+    collectPersonal();
+    collectLifestyle();
+    if (withGoals) {
+      profile.goals = [...document.querySelectorAll('#goalsGrid .goal-card.selected')].map(c => c.dataset.val);
     }
-    showMsg('schoolErr', '');
-    submitProfile();
-  });
 
-  skipBtn.addEventListener('click', async () => {
-    skipBtn.disabled = true;
-    skipBtn.textContent = 'Saving...';
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, suEmail.value.trim(), suPw.value);
-      const user = userCredential.user;
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: suName.value.trim(),
-        role: 'student',
-        disabled: false,
-        createdAt: new Date(),
+      const cred = await createUserWithEmailAndPassword(auth, profile.email, profile.password);
+      const uid  = cred.user.uid;
+
+      await setDoc(doc(db, 'users', uid), {
+        uid,
+        email:       profile.email,
+        displayName: profile.name,
+        role:        'student',
+        disabled:    false,
+        dob:         profile.dob    || null,
+        sex:         profile.sex    || null,
+        height:      profile.height ? Number(profile.height) : null,
+        weight:      profile.weight ? Number(profile.weight) : null,
+        baseline: {
+          sleep_hours:    profile.sleep,
+          activity_level: profile.activity || null,
+          stress_level:   profile.stress   ? Number(profile.stress) : null,
+          diet_quality:   profile.diet     || null,
+          water_glasses:  profile.water
+        },
+        goals:      profile.goals,
+        reminders:  profile.reminders,
+        fcm_token:  null,
+        createdAt:  new Date(),
         updated_at: new Date()
       });
-    } catch (err) {
-      // If user already created (e.g. re-click), ignore auth/email-already-in-use
-      if (err.code !== 'auth/email-already-in-use') {
-        showMsg('profileErr', err.message, true);
-        skipBtn.disabled = false;
-        skipBtn.textContent = 'Skip for now';
-        return;
-      }
-    }
-    goTo('screenSuccess');
-    setTimeout(() => {
-      window.location.replace('/dashboard');
-    }, 1500);
-  });
 
-  function submitProfile() {
-    profileBtn.textContent = 'Saving...';
-    profileBtn.disabled = true;
-    skipBtn.style.display = 'none';
-
-    createUserWithEmailAndPassword(auth, suEmail.value.trim(), suPw.value)
-      .then(async (userCredential) => {
-        const user = userCredential.user;
-        const selectedYear = document.querySelector('input[name="year"]:checked').value;
-
-        await setDoc(doc(db, 'users', user.uid), {
-          uid: user.uid,
-          email: user.email,
-          displayName: suName.value.trim(),
-          role: 'student',
-          school: schoolEl.value.trim(),
-          year: selectedYear,
-          disabled: false,
-          createdAt: new Date(),
-          updated_at: new Date()
-        });
-
-        goTo('screenSuccess');
-        setTimeout(() => {
-          window.location.replace('/dashboard');
-        }, 1500);
-      })
-      .catch((error) => {
-        profileBtn.textContent = 'Complete Profile';
-        profileBtn.disabled = false;
-        skipBtn.style.display = 'block';
-        showMsg('profileErr', error.message, true);
+      // Success screen
+      document.getElementById('successTitle').textContent = `Welcome, ${profile.name.split(' ')[0]}!`;
+      const tagList = document.getElementById('successTags');
+      tagList.innerHTML = '';
+      profile.goals.forEach(g => {
+        const t = document.createElement('span'); t.className = 'tag'; t.textContent = g; tagList.appendChild(t);
       });
+      const rt = document.createElement('span'); rt.className = 'tag'; rt.textContent = 'Reminders on'; tagList.appendChild(rt);
+
+      goTo('screenSuccess');
+      setTimeout(() => window.location.replace('/dashboard'), 2000);
+
+    } catch (err) {
+      btn.disabled = false; btn.textContent = 'Finish Setup';
+      skip.disabled = false;
+      showErr('goalsErr', err.message);
+    }
   }
-
-  schoolEl.addEventListener('input', () => {
-    showMsg('schoolErr', '');
-    validateProfile();
-  });
-
-  document.querySelectorAll('input[name="year"]').forEach(el => {
-    el.addEventListener('change', validateProfile);
-  });
 </script>
 
 </body>
