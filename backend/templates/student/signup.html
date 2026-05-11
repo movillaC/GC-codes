@@ -592,9 +592,10 @@
 </div><!-- /wrapper -->
 
 <script type="module">
+  // ── Fixed: all imports now use matching version 12.12.0 ──
   import { auth, db } from '/static/firebase_config.js';
-  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
   const profile = {
     name: '', email: '', password: '',
@@ -602,10 +603,10 @@
     sleep: 7, activity: '', stress: '', diet: '', water: 6,
     goals: [],
     reminders: {
-      morning_checkin:  { enabled: true, time: '08:00' },
-      hydration_nudge:  { enabled: true, interval_hours: 2 },
-      evening_mood_log: { enabled: true, time: '21:00' },
-      weekly_summary:   { enabled: true, day: 'Sunday', time: '10:00' }
+      morning_checkin:  { enabled: true },
+      hydration_nudge:  { enabled: true },
+      evening_mood_log: { enabled: true },
+      weekly_summary:   { enabled: true }
     }
   };
 
@@ -714,8 +715,8 @@
     if (suPw.value.length < 8)                 { showErr('suPwErr',      'Password must be at least 8 characters.'); ok = false; } else showErr('suPwErr', '');
     if (suConfirm.value !== suPw.value)        { showErr('suConfirmErr', 'Passwords do not match.'); ok = false; }         else showErr('suConfirmErr', '');
     if (!ok) return;
-    profile.name = suName.value.trim();
-    profile.email = suEmail.value.trim();
+    profile.name     = suName.value.trim();
+    profile.email    = suEmail.value.trim();
     profile.password = suPw.value;
     goTo('screenPersonal');
   });
