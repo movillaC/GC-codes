@@ -82,7 +82,7 @@ if (data.success) {
 ```
 FLASK_ENV=development
 SECRET_KEY=your-secret-key-here
-GEMINI_API_KEY=AIzaSyAMKEgEMuBLTCrL1yMyqzOPB4InwvXSnTY
+GEMINI_API_KEY=your-gemini-api-key-here
 FIREBASE_CREDENTIALS_JSON={"type":"service_account",...}
 ```
 

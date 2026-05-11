@@ -905,18 +905,17 @@ def gemini_generate():
     Only authenticated students can call this.
     """
     try:
-        # Verify user token
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
             return jsonify({'error': 'Unauthorized'}), 401
-        
-        token = auth_header[7:]
-        uid = verify_token(token)
-        if not uid:
+
+        try:
+            verify_token(request, allowed_roles=['student'])
+        except Exception:
             return jsonify({'error': 'Invalid token'}), 401
-        
+
         # Get prompt from request
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         prompt = data.get('prompt', '').strip()
         
         if not prompt:
@@ -928,7 +927,7 @@ def gemini_generate():
             return jsonify({'error': 'Gemini API not configured'}), 500
         
         # Call Gemini API (server-side)
-        gemini_endpoint = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}'
+        gemini_endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
         
         response = requests.post(
             gemini_endpoint,
@@ -936,12 +935,18 @@ def gemini_generate():
                 'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
                 'generationConfig': {'maxOutputTokens': 2048, 'temperature': 0.7}
             },
-            headers={'Content-Type': 'application/json'},
+            headers={
+                'Content-Type': 'application/json',
+                'x-goog-api-key': gemini_api_key,
+            },
             timeout=30
         )
         
         if response.status_code != 200:
-            error_data = response.json() if response.text else {}
+            try:
+                error_data = response.json() if response.text else {}
+            except ValueError:
+                error_data = {}
             error_msg = error_data.get('error', {}).get('message', 'Gemini API error')
             return jsonify({'error': error_msg}), response.status_code
         
@@ -958,7 +963,7 @@ def gemini_generate():
         return jsonify({'error': 'Gemini API request timed out'}), 504
     except Exception as e:
         print(f'Gemini API error: {str(e)}')
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+        return jsonify({'error': 'Server error while generating response'}), 500
 
 # ─── RUN APPLICATION ──────────────────────────────────────────────────────
 
