@@ -430,7 +430,7 @@
     } catch(e) { toast('Could not save: '+e.message, 'error'); }
   };
 
-  const GEMINI_API_KEY = 'AIzaSyAMKEgEMuBLTCrL1yMyqzOPB4InwvXSnTY';
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const GEMINI_MODEL   = 'gemini-2.5-flash';
   let _weeklyData = null;
 
@@ -487,7 +487,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+          generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
         }),
       });
 

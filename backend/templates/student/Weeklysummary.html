@@ -171,32 +171,48 @@
     });
   }
 
+  // ── FIXED renderData ──────────────────────────────────────────────────────
   function renderData(summary) {
     list.innerHTML = '';
+
+    // Normalize any date string/object to YYYY-MM-DD
+    function toDateStr(logged_at) {
+      if (!logged_at) return '';
+      return new Date(logged_at).toISOString().split('T')[0];
+    }
+
+    // Return the single latest entry for a given day, or null if none
+    function latest(arr, ds) {
+      const filtered = (arr || []).filter(r => toDateStr(r.logged_at) === ds);
+      if (!filtered.length) return null;
+      // Sort descending by logged_at so index 0 is the newest
+      return filtered.sort((a, b) => new Date(b.logged_at) - new Date(a.logged_at))[0];
+    }
+
     dates.forEach(d => {
-      const ds = d.toISOString().split('T')[0]; // e.g. "2026-04-30"
+      const ds = d.toISOString().split('T')[0]; // e.g. "2026-05-05"
 
-      // Normalize logged_at to YYYY-MM-DD regardless of format
-      function toDateStr(logged_at) {
-        if (!logged_at) return '';
-        // Handle "Wed, 29 Apr 2026 11:11:01 GMT" or ISO format
-        return new Date(logged_at).toISOString().split('T')[0];
-      }
+      // Latest entry wins for sleep, mood, stress
+      const sleep  = latest(summary.sleep,  ds);
+      const mood   = latest(summary.mood,   ds);
+      const stress = latest(summary.stress, ds);
 
-      const sleep = summary.sleep?.find(r => toDateStr(r.logged_at) === ds);
-      const mood = summary.mood?.find(r => toDateStr(r.logged_at) === ds);
-      const water = summary.water?.filter(r => toDateStr(r.logged_at) === ds);
-      const stress = summary.stress?.find(r => toDateStr(r.logged_at) === ds);
-      const tw = water ? (water.reduce((s, r) => s + (r.amount_ml || 0), 0) / 1000).toFixed(1) : 0;
+      // Water: accumulate ALL entries for the day
+      const waterEntries = (summary.water || []).filter(r => toDateStr(r.logged_at) === ds);
+      const tw = waterEntries.reduce((s, r) => s + (r.amount_ml || 0), 0) / 1000;
+
       const row = document.createElement('div');
       row.className = 'summary-row';
       row.innerHTML =
-        '<div class="row-day">' + formatDate(d) + '</div>' +
-        '<div class="row-stats">' + (sleep ? sleep.total + ' sleep' : '—') + '<br>' + (tw > 0 ? tw + ' L water' : '—') + '</div>' +
-        '<div class="row-notes">' + (stress ? stress.stressor : 'No note') + '<br>' + (mood ? mood.mood : '—') + '</div>';
+        '<div class="row-day">'   + formatDate(d) + '</div>' +
+        '<div class="row-stats">' + (sleep  ? sleep.total + ' sleep' : '—') + '<br>' +
+                                    (tw > 0 ? tw.toFixed(1) + ' L water' : '—') + '</div>' +
+        '<div class="row-notes">' + (stress ? stress.stressor : 'No note') + '<br>' +
+                                    (mood   ? mood.mood : '—') + '</div>';
       list.appendChild(row);
     });
   }
+  // ── END FIXED renderData ──────────────────────────────────────────────────
 
   // Wait for auth state, then fetch data
   auth.onAuthStateChanged(async user => {
