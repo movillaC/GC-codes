@@ -33,6 +33,13 @@ def recompute_summaries(uid):
         ts = today_start()
         ws = week_start()
 
+        def records_since(col, start):
+            return [serialize(r) for r in
+                    db.collection('users').document(uid).collection(col)
+                    .where('logged_at', '>=', start)
+                    .order_by('logged_at')
+                    .stream()]
+
         def serialize(record):
             d = record.to_dict()
             if 'logged_at' in d and hasattr(d['logged_at'], 'isoformat'):
@@ -40,24 +47,12 @@ def recompute_summaries(uid):
             return d
 
         # Get today's records
-        sleep_today = [serialize(r) for r in
-                       db.collection('users').document(uid).collection('sleep_records')
-                       .where('logged_at', '>=', ts).stream()]
-        mood_today = [serialize(r) for r in
-                      db.collection('users').document(uid).collection('mood_records')
-                      .where('logged_at', '>=', ts).stream()]
-        water_today = [serialize(r) for r in
-                       db.collection('users').document(uid).collection('water_records')
-                       .where('logged_at', '>=', ts).stream()]
-        stress_today = [serialize(r) for r in
-                        db.collection('users').document(uid).collection('stress_records')
-                        .where('logged_at', '>=', ts).stream()]
-        activity_today = [serialize(r) for r in
-                          db.collection('users').document(uid).collection('activity_records')
-                          .where('logged_at', '>=', ts).stream()]
-        steps_today = [serialize(r) for r in
-                       db.collection('users').document(uid).collection('step_records')
-                       .where('logged_at', '>=', ts).stream()]
+        sleep_today = records_since('sleep_records', ts)
+        mood_today = records_since('mood_records', ts)
+        water_today = records_since('water_records', ts)
+        stress_today = records_since('stress_records', ts)
+        activity_today = records_since('activity_records', ts)
+        steps_today = records_since('step_records', ts)
 
         # Cache daily summary
         daily_summary = {
@@ -72,24 +67,12 @@ def recompute_summaries(uid):
         db.collection('users').document(uid).collection('summaries').document('daily').set(daily_summary, merge=True)
 
         # Get week's records
-        sleep_week = [serialize(r) for r in
-                      db.collection('users').document(uid).collection('sleep_records')
-                      .where('logged_at', '>=', ws).stream()]
-        mood_week = [serialize(r) for r in
-                     db.collection('users').document(uid).collection('mood_records')
-                     .where('logged_at', '>=', ws).stream()]
-        water_week = [serialize(r) for r in
-                      db.collection('users').document(uid).collection('water_records')
-                      .where('logged_at', '>=', ws).stream()]
-        stress_week = [serialize(r) for r in
-                       db.collection('users').document(uid).collection('stress_records')
-                       .where('logged_at', '>=', ws).stream()]
-        activity_week = [serialize(r) for r in
-                         db.collection('users').document(uid).collection('activity_records')
-                         .where('logged_at', '>=', ws).stream()]
-        steps_week = [serialize(r) for r in
-                      db.collection('users').document(uid).collection('step_records')
-                      .where('logged_at', '>=', ws).stream()]
+        sleep_week = records_since('sleep_records', ws)
+        mood_week = records_since('mood_records', ws)
+        water_week = records_since('water_records', ws)
+        stress_week = records_since('stress_records', ws)
+        activity_week = records_since('activity_records', ws)
+        steps_week = records_since('step_records', ws)
 
         # Cache weekly summary
         weekly_summary = {
