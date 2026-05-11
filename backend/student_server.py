@@ -301,9 +301,16 @@ def api_stress():
         stressor = body.get('stressor')
         if not note or not stressor:
             return jsonify({'success': False, 'message': 'note and stressor are required'}), 400
+        try:
+            level = int(body.get('level', 0))
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'level must be a valid integer'}), 400
+        if level and (level < 1 or level > 5):
+            return jsonify({'success': False, 'message': 'level must be between 1 and 5'}), 400
         db.collection('users').document(uid).collection('stress_records').add({
             'note': note,
             'stressor': stressor,
+            'level': level or None,
             'logged_at': datetime.now(timezone.utc)
         })
         recompute_summaries(uid)

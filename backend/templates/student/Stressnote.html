@@ -121,6 +121,15 @@
         <div class="card-header"><a class="go-back" href="/dashboard">Go back &gt;</a></div>
         <div class="section-label">What's stressing you out?</div>
         <textarea class="note-input" id="noteInput" placeholder="What's causing you stress?"></textarea>
+        <div class="section-label">Stress level</div>
+        <select class="note-input" id="levelInput">
+          <option value="">Select level</option>
+          <option value="1">1 - Very low</option>
+          <option value="2">2 - Low</option>
+          <option value="3">3 - Moderate</option>
+          <option value="4">4 - High</option>
+          <option value="5">5 - Very high</option>
+        </select>
         <div class="section-label">What's your stressor?</div>
         <div class="chips-wrap">
           <div class="chip" onclick="selectChip(this)">Work</div>
@@ -160,11 +169,13 @@
     const user = auth.currentUser; const msg = document.getElementById('msg');
     if (!user) { msg.className = 'message show error'; msg.textContent = 'You must be logged in.'; return; }
     const note = document.getElementById('noteInput').value.trim();
+    const level = document.getElementById('levelInput').value;
     if (!note) { msg.className = 'message show error'; msg.textContent = 'Please describe what is stressing you.'; return; }
+    if (!level) { msg.className = 'message show error'; msg.textContent = 'Please select a stress level.'; return; }
     if (!selectedStressor) { msg.className = 'message show error'; msg.textContent = 'Please select a stressor.'; return; }
     try {
       const token = await user.getIdToken();
-      const res = await fetch('/api/stress', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ note, stressor: selectedStressor }) });
+      const res = await fetch('/api/stress', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ note, stressor: selectedStressor, level: Number(level) }) });
       const data = await res.json();
       if (data.success) window.location.href = '/save-confirmation?type=Stress&details=' + encodeURIComponent(selectedStressor);
     } catch(e) { msg.className = 'message show error'; msg.textContent = 'Failed to save.'; }

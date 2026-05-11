@@ -397,10 +397,29 @@
   function getWeekDates() {
     const today = new Date(), mon = new Date(today);
     mon.setDate(today.getDate() - ((today.getDay()+6)%7));
-    return Array.from({length:7}, (_,i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d.toISOString().split('T')[0]; });
+    return Array.from({length:7}, (_,i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return localDS(d); });
   }
-  function toDS(v) { if (!v) return ''; return new Date(v).toISOString().split('T')[0]; }
+  function localDS(d) {
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${m}-${day}`;
+  }
+  function toDS(v) { if (!v) return ''; return localDS(new Date(v)); }
   function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+  function recordsFor(arr, ds) { return (arr || []).filter(r => toDS(r.logged_at) === ds); }
+  function latestFor(arr, ds) { const rows = recordsFor(arr, ds); return rows.length ? rows[rows.length - 1] : null; }
+  function moodValue(r) {
+    if (!r) return null;
+    const raw = r.mood_score ?? r.level ?? r.mood;
+    const n = Number(raw);
+    if (!Number.isNaN(n)) return n;
+    return {'Very sad':1, 'Sad':2, 'Neutral':3, 'Happy':4, 'Very happy':5}[raw] ?? null;
+  }
+  function stressValue(r) {
+    if (!r) return null;
+    const n = Number(r.stress_score ?? r.level ?? r.stress_level);
+    return Number.isNaN(n) ? null : n;
+  }
 
   const cOpts = {
     responsive:true, maintainAspectRatio:false,
@@ -416,12 +435,12 @@
   let charts = {};
   function buildCharts(s, wd, b) {
     Object.values(charts).forEach(c=>c.destroy()); charts = {};
-    const md  = wd.map(ds=>{const r=s.mood?.find(m=>toDS(m.logged_at)===ds);return r?Number(r.mood_score??r.level??3):null;});
-    const sd  = wd.map(ds=>{const r=s.stress?.find(x=>toDS(x.logged_at)===ds);return r?Number(r.stress_score??r.level??0):null;});
-    const sld = wd.map(ds=>{const r=s.sleep?.find(x=>toDS(x.logged_at)===ds);return r?(parseFloat(r.hours??r.total)||null):null;});
-    const wd2 = wd.map(ds=>{const rr=s.water?.filter(x=>toDS(x.logged_at)===ds)||[];return rr.length?+(rr.reduce((a,r)=>a+(r.amount_ml||0),0)/1000).toFixed(2):null;});
-    const ad  = wd.map(ds=>{const rr=s.activity?.filter(x=>toDS(x.logged_at)===ds)||[];return rr.length?rr.reduce((a,r)=>a+(r.duration_mins||0),0):null;});
-    const std = wd.map(ds=>{const rr=s.steps?.filter(x=>toDS(x.logged_at)===ds)||[];return rr.length?+(rr.reduce((a,r)=>a+(r.steps||0),0)/100).toFixed(1):null;});
+    const md  = wd.map(ds=>moodValue(latestFor(s.mood, ds)));
+    const sd  = wd.map(ds=>stressValue(latestFor(s.stress, ds)));
+    const sld = wd.map(ds=>{const r=latestFor(s.sleep, ds);return r?(parseFloat(r.hours??r.total)||null):null;});
+    const wd2 = wd.map(ds=>{const rr=recordsFor(s.water, ds);return rr.length?+(rr.reduce((a,r)=>a+(r.amount_ml||0),0)/1000).toFixed(2):null;});
+    const ad  = wd.map(ds=>{const rr=recordsFor(s.activity, ds);return rr.length?rr.reduce((a,r)=>a+(r.duration_mins||0),0):null;});
+    const std = wd.map(ds=>{const rr=recordsFor(s.steps, ds);return rr.length?+(rr.reduce((a,r)=>a+(r.steps||0),0)/100).toFixed(1):null;});
 
     const mds = [{label:'Mood',data:md,borderColor:'#2db84b',backgroundColor:'rgba(45,184,75,0.06)',tension:0.3,spanGaps:true,pointRadius:3},{label:'Stress',data:sd,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.06)',tension:0.3,spanGaps:true,pointRadius:3}];
     if (b.stress_level) mds.push(dLine(b.stress_level,'Stress base','#f59e0b'));
@@ -441,25 +460,25 @@
   function buildInsights(s, wd, profile) {
     const b = profile?.baseline||{}, goals = profile?.goals||[];
     const rows = [];
-    const sleepVals = wd.map(ds=>{const r=s.sleep?.find(x=>toDS(x.logged_at)===ds);return r?(parseFloat(r.hours??r.total)||null):null;}).filter(v=>v!==null);
+    const sleepVals = wd.map(ds=>{const r=latestFor(s.sleep, ds);return r?(parseFloat(r.hours??r.total)||null):null;}).filter(v=>v!==null);
     const sleepAvg = avg(sleepVals), sleepBase = b.sleep_hours||7;
     if (sleepAvg!==null) rows.push({icon: sleepAvg>=sleepBase-0.5?'😴':'⚠️', text: sleepAvg>=sleepBase-0.5?`Avg sleep <strong>${sleepAvg.toFixed(1)} hrs</strong> — on track (baseline ${sleepBase} hrs).`:`Avg sleep <strong>${sleepAvg.toFixed(1)} hrs</strong>, ${(sleepBase-sleepAvg).toFixed(1)} hrs below your ${sleepBase} hr baseline.`});
     else rows.push({icon:'💤',text:`No sleep logged. Baseline: <strong>${sleepBase} hrs/night</strong>.`});
 
-    const stressVals = wd.map(ds=>{const r=s.stress?.find(x=>toDS(x.logged_at)===ds);return r?(Number(r.stress_score??r.level??0)||null):null;}).filter(v=>v!==null);
+    const stressVals = wd.map(ds=>stressValue(latestFor(s.stress, ds))).filter(v=>v!==null);
     const stressAvg = avg(stressVals), stressBase = b.stress_level||3;
     if (stressAvg!==null) rows.push({icon:stressAvg<=stressBase?'🧘':'😟',text:stressAvg<=stressBase?`Stress avg <strong>${stressAvg.toFixed(1)}/5</strong> — within baseline.`:`Stress avg <strong>${stressAvg.toFixed(1)}/5</strong>, above your usual ${stressBase}/5. Check resource library.`});
 
-    const waterDays = wd.filter(ds=>(s.water?.filter(w=>toDS(w.logged_at)===ds)||[]).some(r=>r.amount_ml>0));
+    const waterDays = wd.filter(ds=>recordsFor(s.water, ds).some(r=>r.amount_ml>0));
     const waterBaseL = +((b.water_glasses||8)*0.25).toFixed(2);
-    const waterAvgL  = waterDays.length ? avg(waterDays.map(ds=>{const rr=s.water?.filter(w=>toDS(w.logged_at)===ds)||[];return +(rr.reduce((a,r)=>a+(r.amount_ml||0),0)/1000).toFixed(2);})) : null;
+    const waterAvgL  = waterDays.length ? avg(waterDays.map(ds=>{const rr=recordsFor(s.water, ds);return +(rr.reduce((a,r)=>a+(r.amount_ml||0),0)/1000).toFixed(2);})) : null;
     if (waterAvgL!==null) rows.push({icon:'💧',text:waterAvgL>=waterBaseL*0.85?`Water avg <strong>${waterAvgL.toFixed(1)} L/day</strong> — good hydration.`:`Water avg <strong>${waterAvgL.toFixed(1)} L</strong> on logged days, below goal of ${waterBaseL} L.`});
 
-    const activeDays = wd.filter(ds=>(s.activity?.filter(a=>toDS(a.logged_at)===ds)||[]).length>0).length;
+    const activeDays = wd.filter(ds=>recordsFor(s.activity, ds).length>0).length;
     const actTarget  = {Sedentary:1,'Lightly active':2,'Moderately active':3,'Very active':5}[b.activity_level]||3;
     rows.push({icon:activeDays>=actTarget?'🏃':'🏃',text:activeDays>=actTarget?`Active <strong>${activeDays}/7 days</strong> — on target!`:`Active <strong>${activeDays}/7 days</strong>. Aim for ${actTarget} days (${b.activity_level||'Moderately active'} goal).`});
 
-    const loggedDays = wd.filter(ds=>[s.mood,s.sleep,s.stress].some(arr=>arr?.find(r=>toDS(r.logged_at)===ds))).length;
+    const loggedDays = wd.filter(ds=>[s.mood,s.sleep,s.stress].some(arr=>latestFor(arr, ds))).length;
     rows.push({icon:loggedDays===7?'🔥':loggedDays<3?'📋':'📅',text:`Check-in streak: <strong>${loggedDays}/7 days</strong> this week.`});
 
     document.getElementById('insightTable').innerHTML = rows.map(r=>`<tr><td>${r.icon}</td><td>${r.text}</td></tr>`).join('');
@@ -470,11 +489,11 @@
     const goals = profile?.goals||[], b = profile?.baseline||{};
     if (!goals.length) return;
     const gm = {
-      'Sleep better':    ()=>{ const v=avg(wd.map(ds=>{const r=s.sleep?.find(x=>toDS(x.logged_at)===ds);return r?(parseFloat(r.hours??r.total)||null):null;}).filter(v=>v!==null)); return v?Math.min(100,Math.round((v/(b.sleep_hours||7))*100)):0; },
-      'Manage stress':   ()=>{ const v=avg(wd.map(ds=>{const r=s.stress?.find(x=>toDS(x.logged_at)===ds);return r?(Number(r.stress_score??r.level??0)||null):null;}).filter(v=>v!==null)); return v?Math.min(100,Math.round(((5-v)/4)*100)):0; },
-      'Stay hydrated':   ()=>Math.round((wd.filter(ds=>(s.water?.filter(w=>toDS(w.logged_at)===ds)||[]).some(r=>r.amount_ml>0)).length/7)*100),
-      'Be more active':  ()=>{ const a=wd.filter(ds=>(s.activity?.filter(x=>toDS(x.logged_at)===ds)||[]).length>0).length; const t={Sedentary:1,'Lightly active':2,'Moderately active':3,'Very active':5}[b.activity_level]||3; return Math.min(100,Math.round((a/t)*100)); },
-      'Improve mood':    ()=>{ const v=avg(wd.map(ds=>{const r=s.mood?.find(x=>toDS(x.logged_at)===ds);return r?(Number(r.mood_score??r.level??3)||null):null;}).filter(v=>v!==null)); return v?Math.min(100,Math.round((v/5)*100)):0; },
+      'Sleep better':    ()=>{ const v=avg(wd.map(ds=>{const r=latestFor(s.sleep, ds);return r?(parseFloat(r.hours??r.total)||null):null;}).filter(v=>v!==null)); return v?Math.min(100,Math.round((v/(b.sleep_hours||7))*100)):0; },
+      'Manage stress':   ()=>{ const v=avg(wd.map(ds=>stressValue(latestFor(s.stress, ds))).filter(v=>v!==null)); return v?Math.min(100,Math.round(((5-v)/4)*100)):0; },
+      'Stay hydrated':   ()=>Math.round((wd.filter(ds=>recordsFor(s.water, ds).some(r=>r.amount_ml>0)).length/7)*100),
+      'Be more active':  ()=>{ const a=wd.filter(ds=>recordsFor(s.activity, ds).length>0).length; const t={Sedentary:1,'Lightly active':2,'Moderately active':3,'Very active':5}[b.activity_level]||3; return Math.min(100,Math.round((a/t)*100)); },
+      'Improve mood':    ()=>{ const v=avg(wd.map(ds=>moodValue(latestFor(s.mood, ds))).filter(v=>v!==null)); return v?Math.min(100,Math.round((v/5)*100)):0; },
       'Eat healthier':   ()=>({Poor:25,Fair:50,Good:75,'Very good':100}[b.diet_quality]||50),
     };
     const rows = goals.filter(g=>gm[g]).map(g=>{
