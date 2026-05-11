@@ -478,56 +478,29 @@
         '  Diet quality: '   + (b.diet_quality   || 'not set') + '\n' +
         'This week logging activity: ' + dataSummary;
 
-      const endpoint =
-        'https://generativelanguage.googleapis.com/v1beta/models/' +
-        GEMINI_MODEL + ':streamGenerateContent?alt=sse&key=' + GEMINI_API_KEY;
-
-      const response = await fetch(endpoint, {
+      // Call backend endpoint instead of Gemini directly (API key stays on server)
+      const response = await fetch('/api/gemini-generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
-        }),
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ prompt: prompt }),
       });
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error((err.error && err.error.message) || 'Gemini API error ' + response.status);
+        throw new Error(err.error || 'Gemini API error ' + response.status);
       }
 
-      body.innerHTML = '';
-      const reader  = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let text   = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const raw = line.slice(6).trim();
-          if (!raw || raw === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(raw);
-            const delta  = parsed.candidates && parsed.candidates[0] && parsed.candidates[0].content && parsed.candidates[0].content.parts && parsed.candidates[0].content.parts[0] && parsed.candidates[0].content.parts[0].text || '';
-            if (delta) {
-              text += delta;
-              body.innerHTML = text
-                .split(/\n\n+/)
-                .filter(p => p.trim())
-                .map(p => '<p style="margin-bottom:12px;">' + p.replace(/\n/g, ' ').trim() + '</p>')
-                .join('');
-            }
-          } catch(e) {}
-        }
+      const data = await response.json();
+      if (data.success && data.text) {
+        const text = data.text;
+        body.innerHTML = text
+          .split(/\n\n+/)
+          .filter(p => p.trim())
+          .map(p => '<p style="margin-bottom:12px;">' + p.replace(/\n/g, ' ').trim() + '</p>')
+          .join('');
+      } else {
+        body.innerHTML = '<p style="color:#c62828;">Could not generate suggestions. Try refreshing.</p>';
       }
-
-      if (!text.trim()) body.innerHTML = '<p style="color:#c62828;">Could not generate suggestions. Try refreshing.</p>';
 
     } catch(err) {
       body.innerHTML = '<p style="color:#c62828;font-size:12px;">Error: ' + err.message + '</p>';

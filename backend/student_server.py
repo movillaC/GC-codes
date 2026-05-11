@@ -5,6 +5,8 @@ Port: 5000
 Handles student login, signup, and all student-specific routes and APIs
 Only students can access this server
 """
+import os
+import requests
 from flask import Flask, request, jsonify, render_template, redirect
 from datetime import datetime, timezone
 from config import StudentConfig
@@ -893,7 +895,77 @@ def server_error(error):
     """Handle 500 errors"""
     return jsonify({'error': 'Internal server error'}), 500
 
+# ─── GEMINI AI API (SECURE BACKEND CALL) ──────────────────────────────────
+
+@app.route('/api/gemini-generate', methods=['POST'])
+def gemini_generate():
+    """
+    Secure backend endpoint for Gemini API calls.
+    The API key is never exposed to the frontend.
+    Only authenticated students can call this.
+    """
+    try:
+        # Verify user token
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Unauthorized'}), 401
+        
+        token = auth_header[7:]
+        uid = verify_token(token)
+        if not uid:
+            return jsonify({'error': 'Invalid token'}), 401
+        
+        # Get prompt from request
+        data = request.get_json()
+        prompt = data.get('prompt', '').strip()
+        
+        if not prompt:
+            return jsonify({'error': 'Prompt is required'}), 400
+        
+        # Get API key from environment (NOT exposed to frontend)
+        gemini_api_key = os.environ.get('GEMINI_API_KEY')
+        if not gemini_api_key:
+            return jsonify({'error': 'Gemini API not configured'}), 500
+        
+        # Call Gemini API (server-side)
+        gemini_endpoint = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}'
+        
+        response = requests.post(
+            gemini_endpoint,
+            json={
+                'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
+                'generationConfig': {'maxOutputTokens': 2048, 'temperature': 0.7}
+            },
+            headers={'Content-Type': 'application/json'},
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            error_data = response.json() if response.text else {}
+            error_msg = error_data.get('error', {}).get('message', 'Gemini API error')
+            return jsonify({'error': error_msg}), response.status_code
+        
+        data = response.json()
+        
+        # Extract text from response
+        if data.get('candidates') and data['candidates'][0].get('content'):
+            text = data['candidates'][0]['content'].get('parts', [{}])[0].get('text', '')
+            return jsonify({'success': True, 'text': text}), 200
+        else:
+            return jsonify({'error': 'Invalid response from Gemini API'}), 500
+    
+    except requests.Timeout:
+        return jsonify({'error': 'Gemini API request timed out'}), 504
+    except Exception as e:
+        print(f'Gemini API error: {str(e)}')
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
 # ─── RUN APPLICATION ──────────────────────────────────────────────────────
+
+@app.errorhandler(500)
+def server_error(error):
+    """Handle 500 errors"""
+    return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
     print(f"Starting Student Server on port {StudentConfig.PORT}...")
