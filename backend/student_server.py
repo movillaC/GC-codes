@@ -375,28 +375,19 @@ def api_steps():
 def today_summary():
     """
     Get today's summary.
-    Reads from the pre-computed 'summaries/daily' doc which is refreshed
-    automatically every time a health log is submitted.
-    Falls back to live query if no cached doc exists yet.
+    Reads live ordered records so the dashboard always reflects the latest
+    submitted values, even if an older cached summary is stale.
     """
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
 
-        cached = db.collection('users').document(uid) \
-                   .collection('summaries').document('daily').get()
-
-        if cached.exists:
-            data = cached.to_dict()
-            # Strip the server timestamp before returning
-            data.pop('updated_at', None)
-            return jsonify({'success': True, 'summary': data})
-
-        # ── Fallback: live query (first call before any log has been submitted) ──
         ts = today_start()
         def latest(col):
             return [r.to_dict() for r in
                     db.collection('users').document(uid).collection(col)
-                    .where('logged_at', '>=', ts).stream()]
+                    .where('logged_at', '>=', ts)
+                    .order_by('logged_at')
+                    .stream()]
 
         sleep    = latest('sleep_records')
         mood     = latest('mood_records')
@@ -423,21 +414,12 @@ def today_summary():
 def weekly_summary_api():
     """
     Get weekly summary.
-    Reads from the pre-computed 'summaries/weekly' doc which is refreshed
-    automatically every time a health log is submitted.
-    Falls back to live query if no cached doc exists yet.
+    Reads live ordered records so dashboard charts and weekly views do not
+    depend on an older cached summary.
     """
     try:
         uid, _, _ = verify_token(request, allowed_roles=['student'])
 
-        cached = db.collection('users').document(uid) \
-                   .collection('summaries').document('weekly').get()
-
-        if cached.exists:
-            data = cached.to_dict()
-            return jsonify({'success': True, 'summary': data})
-
-        # ── Fallback: live query ──
         ws = week_start()
 
         def serialize(record):
@@ -449,7 +431,9 @@ def weekly_summary_api():
         def get_records(col):
             return [serialize(r) for r in
                     db.collection('users').document(uid).collection(col)
-                    .where('logged_at', '>=', ws).stream()]
+                    .where('logged_at', '>=', ws)
+                    .order_by('logged_at')
+                    .stream()]
 
         return jsonify({'success': True, 'summary': {
             'sleep':    get_records('sleep_records'),
